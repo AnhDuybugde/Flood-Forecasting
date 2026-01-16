@@ -1,0 +1,11 @@
+{"timestamp":"2026-01-15T14:47:05.234751Z","level":"info","event":"DAG bundles loaded: dags-folder, example_dags","logger":"airflow.dag_processing.bundles.manager.DagBundlesManager","filename":"manager.py","lineno":179}
+{"timestamp":"2026-01-15T14:47:05.235767Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/pdf_to_csv.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
+{"timestamp":"2026-01-15T14:47:05.274813Z","level":"info","event":"Task instance is in running state","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:05.275412Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.QUEUED","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:05.275701Z","level":"info","event":"Current task name:merge_pdfs","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:05.275923Z","level":"info","event":"Dag name:pdf_merge_extract_pipeline","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:05.323504Z","level":"info","event":"⏭️  SKIP merge – file đã tồn tại: /opt/airflow/data/merged_2014_2024.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:05.323523Z","level":"info","event":"Done. Returned value was: None","logger":"airflow.task.operators.airflow.providers.standard.operators.python.PythonOperator","filename":"python.py","lineno":215}
+{"timestamp":"2026-01-15T14:47:05.345269Z","level":"info","event":"Task instance in success state","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:05.345787Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.RUNNING","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:05.346334Z","level":"info","event":"Task operator:<Task(PythonOperator): merge_pdfs>","logger":"task.stdout"}

@@ -1,0 +1,7 @@
+=========================== FOLLOWING PSMSL DOCUMENTATION ADDED 15-Dec-2016
+Tarragona is a new REDMAR station.
+=========================== FOLLOWING PSMSL DOCUMENTATION ADDED 11-Jul-2023
+There was local subsidence of the quay in 2022 - corrected values will be provided
+=========================== FOLLOWING PSMSL DOCUMENTATION ADDED 04-Jul-2025
+This station revealed very local movements of the quay, so this data should be used with care. The supplier is reviewing the levelling information and GNSS data and will provide more details as soon as available.
+

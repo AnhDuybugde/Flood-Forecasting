@@ -1,0 +1,11 @@
+{"timestamp":"2026-01-15T14:31:58.568480Z","level":"info","event":"DAG bundles loaded: dags-folder, example_dags","logger":"airflow.dag_processing.bundles.manager.DagBundlesManager","filename":"manager.py","lineno":179}
+{"timestamp":"2026-01-15T14:31:58.569414Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/pdf_to_csv.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
+{"timestamp":"2026-01-15T14:31:58.591594Z","level":"info","event":"Task instance is in running state","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:31:58.591995Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.QUEUED","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:31:58.592245Z","level":"info","event":"Current task name:extract_pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:31:58.592404Z","level":"info","event":"Dag name:pdf_merge_extract_pipeline","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:32:00.425729Z","level":"info","event":"✅ Extract mực nước biển 2014–2024 theo tháng xong","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:32:00.425723Z","level":"info","event":"Done. Returned value was: None","logger":"airflow.task.operators.airflow.providers.standard.operators.python.PythonOperator","filename":"python.py","lineno":215}
+{"timestamp":"2026-01-15T14:32:00.437904Z","level":"info","event":"Task instance in success state","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:32:00.438217Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.RUNNING","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:32:00.438584Z","level":"info","event":"Task operator:<Task(PythonOperator): extract_pdf>","logger":"task.stdout"}

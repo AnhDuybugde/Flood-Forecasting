@@ -1,0 +1,5 @@
+1946-1951 Data supplied by the Spanish Oceanographic Institute
+=========================== FOLLOWING PSMSL DOCUMENTATION ADDED 07-Jan-2025
+Updated supplier - station was erroneously assigned to IGN
+This site is actually the same location as ID 985 (CADIZ III), but the two records were kept separate due to doubts about the stability of the datum before 1965. For more information, see Marcos et al's "The long sea level record at Cadiz (southern Spain) from 1880 to 2009" - doi:10.1029/2011JC007558
+

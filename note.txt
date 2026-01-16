@@ -1,0 +1,9 @@
+docker compose exec airflow-apiserver airflow dags list
+
+docker compose restart
+docker compose down -v
+docker compose up -d
+
+.\venv\Scripts\activate
+
+docker ps --format "table {{.Names}}\t{{.Ports}}"

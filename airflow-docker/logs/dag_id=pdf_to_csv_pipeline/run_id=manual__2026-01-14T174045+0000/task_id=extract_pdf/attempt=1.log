@@ -1,0 +1,8 @@
+{"timestamp":"2026-01-14T17:40:49.477548Z","level":"info","event":"DAG bundles loaded: dags-folder, example_dags","logger":"airflow.dag_processing.bundles.manager.DagBundlesManager","filename":"manager.py","lineno":179}
+{"timestamp":"2026-01-14T17:40:49.478892Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/pdf_to_csv.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
+{"timestamp":"2026-01-14T17:40:49.520601Z","level":"info","event":"Task instance is in running state","logger":"task.stdout"}
+{"timestamp":"2026-01-14T17:40:49.521051Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.QUEUED","logger":"task.stdout"}
+{"timestamp":"2026-01-14T17:40:49.521230Z","level":"info","event":"Current task name:extract_pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T17:40:49.521362Z","level":"info","event":"Dag name:pdf_to_csv_pipeline","logger":"task.stdout"}
+{"timestamp":"2026-01-14T17:43:45.111291Z","level":"error","event":"Server indicated the task shouldn't be running anymore. Terminating process","detail":{"detail":{"reason":"not_found","message":"Task Instance not found"}},"logger":"task"}
+{"timestamp":"2026-01-14T17:43:55.123007Z","level":"error","event":"Task killed!","logger":"task"}
