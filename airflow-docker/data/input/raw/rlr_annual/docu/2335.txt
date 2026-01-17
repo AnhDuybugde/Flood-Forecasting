@@ -1,0 +1,5 @@
+=========================== FOLLOWING PSMSL DOCUMENTATION ADDED 28-Mar-2017
+Mimizan is a new station downloaded from the SONEL website.
+=========================== FOLLOWING PSMSL DOCUMENTATION ADDED 16-Jul-2025
+Updated the whole dataset to ensure they include all the historical data recovered recently by SHOM and the calculated monthly and annual means match those distributed by SONEL.
+

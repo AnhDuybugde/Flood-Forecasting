@@ -1,0 +1,23 @@
+{"timestamp":"2026-01-15T14:37:53.177498Z","level":"info","event":"DAG bundles loaded: dags-folder, example_dags","logger":"airflow.dag_processing.bundles.manager.DagBundlesManager","filename":"manager.py","lineno":179}
+{"timestamp":"2026-01-15T14:37:53.178513Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/pdf_to_csv.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
+{"timestamp":"2026-01-15T14:37:53.200045Z","level":"info","event":"Task instance is in running state","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:53.200651Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.QUEUED","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:53.200942Z","level":"info","event":"Current task name:extract_pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:53.201156Z","level":"info","event":"Dag name:pdf_merge_extract_pipeline","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:53.231516Z","level":"info","event":"📄 Processing 2014.pdf (2014)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:53.359874Z","level":"info","event":"📄 Processing 2015.pdf (2015)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:53.487513Z","level":"info","event":"📄 Processing 2016.pdf (2016)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:53.607475Z","level":"info","event":"📄 Processing 2017.pdf (2017)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:53.758905Z","level":"info","event":"📄 Processing 2018.pdf (2018)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:53.948185Z","level":"info","event":"📄 Processing 2019.pdf (2019)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:54.290802Z","level":"info","event":"📄 Processing 2020.pdf (2020)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:54.478581Z","level":"info","event":"📄 Processing 2021.pdf (2021)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:54.609546Z","level":"info","event":"📄 Processing 2022.pdf (2022)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:54.752735Z","level":"info","event":"📄 Processing 2023.pdf (2023)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:54.886082Z","level":"info","event":"📄 Processing 2024.pdf (2024)","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:55.033575Z","level":"info","event":"✅ Extract xong: 1944 rows","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:55.033959Z","level":"info","event":"📁 Output: /opt/airflow/data/output/sea_level_2014_2024_monthly.csv","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:55.033756Z","level":"info","event":"Done. Returned value was: None","logger":"airflow.task.operators.airflow.providers.standard.operators.python.PythonOperator","filename":"python.py","lineno":215}
+{"timestamp":"2026-01-15T14:37:55.046423Z","level":"info","event":"Task instance in success state","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:55.046772Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.RUNNING","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:37:55.047046Z","level":"info","event":"Task operator:<Task(PythonOperator): extract_pdf>","logger":"task.stdout"}

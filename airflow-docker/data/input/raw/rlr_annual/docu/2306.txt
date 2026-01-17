@@ -1,0 +1,5 @@
+=========================== FOLLOWING PSMSL DOCUMENTATION ADDED 29-Jun-2016
+Lifou is a new station on one of the Loyalty Islands approximately 200 km northeast of the mainland.
+=========================== FOLLOWING PSMSL DOCUMENTATION ADDED 16-Jul-2025
+Updated the whole dataset to ensure they include all the historical data recovered recently by SHOM and the calculated monthly and annual means match those distributed by SONEL.
+

@@ -1,0 +1,21 @@
+{"timestamp":"2026-01-14T18:08:50.215629Z","level":"info","event":"DAG bundles loaded: dags-folder, example_dags","logger":"airflow.dag_processing.bundles.manager.DagBundlesManager","filename":"manager.py","lineno":179}
+{"timestamp":"2026-01-14T18:08:50.216437Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/pdf_to_csv.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
+{"timestamp":"2026-01-14T18:08:50.235318Z","level":"info","event":"Task instance is in running state","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:08:50.237729Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.QUEUED","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:08:50.237953Z","level":"info","event":"Current task name:extract_pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:08:50.238097Z","level":"info","event":"Dag name:pdf_to_csv_pipeline","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:08:54.467525Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-Thong-ke-2014.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:08:59.223745Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-Thong-ke-2015.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:03.165064Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-Thong-ke-2016.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:08.965567Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-Thong-ke-2017.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:15.232204Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-Thong-ke-2018.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:21.099229Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-thong-ke-2019.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:27.233419Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-Thong-ke-2020.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:33.095393Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-Thong-ke-2021.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:39.688611Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-Thong-ke-2022.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:44.646848Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-Thong-ke-2023.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:50.317779Z","level":"info","event":"⚠️ Không tìm thấy bảng hợp lệ trong Nien-giam-Thong-ke-2024.pdf","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:50.337997Z","level":"info","event":"Done. Returned value was: None","logger":"airflow.task.operators.airflow.providers.standard.operators.python.PythonOperator","filename":"python.py","lineno":215}
+{"timestamp":"2026-01-14T18:09:50.349572Z","level":"info","event":"Task instance in success state","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:50.349969Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.RUNNING","logger":"task.stdout"}
+{"timestamp":"2026-01-14T18:09:50.352722Z","level":"info","event":"Task operator:<Task(PythonOperator): extract_pdf>","logger":"task.stdout"}

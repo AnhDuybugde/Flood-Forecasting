@@ -1,0 +1,1 @@
+Add 0.000m to all data values to refer to RLR<br>RLR is 30.500m below primary benchmark NGU - 712

@@ -1,0 +1,11 @@
+{"timestamp":"2026-01-15T14:47:09.826083Z","level":"info","event":"DAG bundles loaded: dags-folder, example_dags","logger":"airflow.dag_processing.bundles.manager.DagBundlesManager","filename":"manager.py","lineno":179}
+{"timestamp":"2026-01-15T14:47:09.826974Z","level":"info","event":"Filling up the DagBag from /opt/airflow/dags/pdf_to_csv.py","logger":"airflow.models.dagbag.DagBag","filename":"dagbag.py","lineno":593}
+{"timestamp":"2026-01-15T14:47:09.845981Z","level":"info","event":"Task instance is in running state","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:09.846395Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.QUEUED","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:09.846598Z","level":"info","event":"Current task name:done","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:09.846763Z","level":"info","event":"Dag name:pdf_merge_extract_pipeline","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:09.847470Z","level":"info","event":"✅ PDF → CSV hoàn tất","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:09.847661Z","level":"info","event":"Done. Returned value was: None","logger":"airflow.task.operators.airflow.providers.standard.operators.python.PythonOperator","filename":"python.py","lineno":215}
+{"timestamp":"2026-01-15T14:47:09.858616Z","level":"info","event":"Task instance in success state","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:09.858964Z","level":"info","event":" Previous state of the Task instance: TaskInstanceState.RUNNING","logger":"task.stdout"}
+{"timestamp":"2026-01-15T14:47:09.865696Z","level":"info","event":"Task operator:<Task(PythonOperator): done>","logger":"task.stdout"}
