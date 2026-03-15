@@ -1,10 +1,40 @@
-docker compose exec airflow-apiserver airflow dags list
+# 1. Xóa các bản build lỗi trước đó để tránh "rác"
+docker compose down --v
 
-docker compose restart
-docker compose down -v
+# 2. Build Image mới (quá trình này sẽ cài copernicusmarine thành công trên Python 3.11)
+docker compose build --no-cache
+
+# 3. Khởi tạo Database
+docker compose up airflow-init
+
+# 4. Bật toàn bộ pipeline
 docker compose up -d
 
+
+
+docker compose run --rm airflow-webserver airflow db init
+
+docker compose run --rm airflow-webserver airflow users create `
+  --username airflow `
+  --firstname admin `
+  --lastname admin `
+  --role Admin `
+  --email admin@example.com `
+  --password airflow
+
+
+#access to install library
+docker exec -it airflow-docker-airflow-webserver-1 bash   
+docker exec -it airflow-webserver bash
+
+python /opt/airflow/scripts/GEE.py
+
+
+
 .\venv\Scripts\activate
+
+
+
 
 docker ps --format "table {{.Names}}\t{{.Ports}}"
 
@@ -22,3 +52,19 @@ An Giang (Long Xuyên)     10.38   105.44
 Đồng Tháp (Cao Lãnh)      10.46   105.63
 Cà Mau                   9.18    105.15
 Kiên Giang (Phú Quốc)    10.23   103.96
+
+
+
+import ee
+
+SERVICE_ACCOUNT = "gee-airflow@landsurface-485908.iam.gserviceaccount.com"
+KEY_FILE = "/opt/airflow/secrets/gee-airflow.json"
+
+credentials = ee.ServiceAccountCredentials(
+    SERVICE_ACCOUNT,
+    KEY_FILE
+)
+
+ee.Initialize(credentials)
+
+print(ee.Number(1).getInfo())

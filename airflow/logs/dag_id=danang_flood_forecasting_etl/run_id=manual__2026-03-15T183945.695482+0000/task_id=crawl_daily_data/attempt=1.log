@@ -1,0 +1,51 @@
+[2026-03-15T18:40:36.865+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=non-requeueable deps ti=<TaskInstance: danang_flood_forecasting_etl.crawl_daily_data manual__2026-03-15T18:39:45.695482+00:00 [queued]>
+[2026-03-15T18:40:36.871+0000] {taskinstance.py:1979} INFO - Dependencies all met for dep_context=requeueable deps ti=<TaskInstance: danang_flood_forecasting_etl.crawl_daily_data manual__2026-03-15T18:39:45.695482+00:00 [queued]>
+[2026-03-15T18:40:36.871+0000] {taskinstance.py:2193} INFO - Starting attempt 1 of 2
+[2026-03-15T18:40:36.880+0000] {taskinstance.py:2214} INFO - Executing <Task(BashOperator): crawl_daily_data> on 2026-03-15 18:39:45.695482+00:00
+[2026-03-15T18:40:36.886+0000] {standard_task_runner.py:60} INFO - Started process 75 to run task
+[2026-03-15T18:40:36.890+0000] {standard_task_runner.py:87} INFO - Running: ['***', 'tasks', 'run', 'danang_flood_forecasting_etl', 'crawl_daily_data', 'manual__2026-03-15T18:39:45.695482+00:00', '--job-id', '35', '--raw', '--subdir', 'DAGS_FOLDER/weather_flood_pipeline.py', '--cfg-path', '/tmp/tmpm5wlz0bh']
+[2026-03-15T18:40:36.893+0000] {standard_task_runner.py:88} INFO - Job 35: Subtask crawl_daily_data
+[2026-03-15T18:39:47.782+0000] {task_command.py:423} INFO - Running <TaskInstance: danang_flood_forecasting_etl.crawl_daily_data manual__2026-03-15T18:39:45.695482+00:00 [running]> on host 266e99c539b1
+[2026-03-15T18:39:47.841+0000] {taskinstance.py:2510} INFO - Exporting env vars: AIRFLOW_CTX_DAG_OWNER='anh_duy' AIRFLOW_CTX_DAG_ID='danang_flood_forecasting_etl' AIRFLOW_CTX_TASK_ID='crawl_daily_data' AIRFLOW_CTX_EXECUTION_DATE='2026-03-15T18:39:45.695482+00:00' AIRFLOW_CTX_TRY_NUMBER='1' AIRFLOW_CTX_DAG_RUN_ID='manual__2026-03-15T18:39:45.695482+00:00'
+[2026-03-15T18:39:47.843+0000] {subprocess.py:63} INFO - Tmp dir root location: /tmp
+[2026-03-15T18:39:47.844+0000] {subprocess.py:75} INFO - Running command: ['/usr/bin/bash', '-c', 'python /opt/***/scripts/crawl.py 2026-03-15 ']
+[2026-03-15T18:39:47.858+0000] {subprocess.py:86} INFO - Output:
+[2026-03-15T18:39:56.357+0000] {subprocess.py:93} INFO - INFO:FloodLocalMaster:🔐 GEE initialized via JSON Key file (Professional Setup)
+[2026-03-15T18:39:56.367+0000] {subprocess.py:93} INFO - INFO:FloodLocalMaster:🏛️ Đang chuẩn bị dữ liệu Static...
+[2026-03-15T18:39:56.371+0000] {subprocess.py:93} INFO - INFO:rasterio._env:GDAL signalled an error: err_no=4, msg="`/opt/***/Data/data_original/Static/Terrain_DEM_Raw.tif' not recognized as being in a supported file format."
+[2026-03-15T18:39:56.373+0000] {subprocess.py:93} INFO - Traceback (most recent call last):
+[2026-03-15T18:39:56.373+0000] {subprocess.py:93} INFO -   File "rasterio/_base.pyx", line 311, in rasterio._base.DatasetBase.__init__
+[2026-03-15T18:39:56.373+0000] {subprocess.py:93} INFO -   File "rasterio/_base.pyx", line 222, in rasterio._base.open_dataset
+[2026-03-15T18:39:56.374+0000] {subprocess.py:93} INFO -   File "rasterio/_err.pyx", line 359, in rasterio._err.exc_wrap_pointer
+[2026-03-15T18:39:56.374+0000] {subprocess.py:93} INFO - rasterio._err.CPLE_OpenFailedError: '/opt/***/Data/data_original/Static/Terrain_DEM_Raw.tif' not recognized as being in a supported file format.
+[2026-03-15T18:39:56.374+0000] {subprocess.py:93} INFO - 
+[2026-03-15T18:39:56.375+0000] {subprocess.py:93} INFO - During handling of the above exception, another exception occurred:
+[2026-03-15T18:39:56.375+0000] {subprocess.py:93} INFO - 
+[2026-03-15T18:39:56.375+0000] {subprocess.py:93} INFO - Traceback (most recent call last):
+[2026-03-15T18:39:56.376+0000] {subprocess.py:93} INFO -   File "/opt/***/scripts/crawl.py", line 78, in <module>
+[2026-03-15T18:39:56.376+0000] {subprocess.py:93} INFO -     with rasterio.open(dem_path) as src:
+[2026-03-15T18:39:56.376+0000] {subprocess.py:93} INFO -          ^^^^^^^^^^^^^^^^^^^^^^^
+[2026-03-15T18:39:56.377+0000] {subprocess.py:93} INFO -   File "/home/***/.local/lib/python3.11/site-packages/rasterio/env.py", line 463, in wrapper
+[2026-03-15T18:39:56.377+0000] {subprocess.py:93} INFO -     return f(*args, **kwds)
+[2026-03-15T18:39:56.378+0000] {subprocess.py:93} INFO -            ^^^^^^^^^^^^^^^^
+[2026-03-15T18:39:56.378+0000] {subprocess.py:93} INFO -   File "/home/***/.local/lib/python3.11/site-packages/rasterio/__init__.py", line 356, in open
+[2026-03-15T18:39:56.379+0000] {subprocess.py:93} INFO -     dataset = DatasetReader(path, driver=driver, sharing=sharing, **kwargs)
+[2026-03-15T18:39:56.379+0000] {subprocess.py:93} INFO -               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[2026-03-15T18:39:56.379+0000] {subprocess.py:93} INFO -   File "rasterio/_base.pyx", line 313, in rasterio._base.DatasetBase.__init__
+[2026-03-15T18:39:56.379+0000] {subprocess.py:93} INFO - rasterio.errors.RasterioIOError: '/opt/***/Data/data_original/Static/Terrain_DEM_Raw.tif' not recognized as being in a supported file format.
+[2026-03-15T18:39:56.819+0000] {subprocess.py:97} INFO - Command exited with return code 1
+[2026-03-15T18:39:56.827+0000] {taskinstance.py:2728} ERROR - Task failed with exception
+Traceback (most recent call last):
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 444, in _execute_task
+    result = _execute_callable(context=context, **execute_callable_kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/models/taskinstance.py", line 414, in _execute_callable
+    return execute_callable(context=context, **execute_callable_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/airflow/.local/lib/python3.11/site-packages/airflow/operators/bash.py", line 212, in execute
+    raise AirflowException(
+airflow.exceptions.AirflowException: Bash command failed. The command returned a non-zero exit code 1.
+[2026-03-15T18:39:56.831+0000] {taskinstance.py:1149} INFO - Marking task as UP_FOR_RETRY. dag_id=danang_flood_forecasting_etl, task_id=crawl_daily_data, execution_date=20260315T183945, start_date=20260315T184036, end_date=20260315T183956
+[2026-03-15T18:39:56.866+0000] {standard_task_runner.py:107} ERROR - Failed to execute job 35 for task crawl_daily_data (Bash command failed. The command returned a non-zero exit code 1.; 75)
+[2026-03-15T18:39:56.894+0000] {local_task_job_runner.py:234} INFO - Task exited with return code 1
+[2026-03-15T18:39:56.936+0000] {taskinstance.py:3309} INFO - 0 downstream tasks scheduled from follow-on schedule check

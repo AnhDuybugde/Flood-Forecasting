@@ -1,0 +1,14 @@
+# 1. Dữ liệu (Đường dẫn tính từ folder airflow)
+Data/
+data_original/
+data_processed/
+logs/
+
+# 2. Thông tin bảo mật
+.env
+config/gee-key.json
+
+# 3. Rác
+__pycache__/
+venv/
+.DS_Store
