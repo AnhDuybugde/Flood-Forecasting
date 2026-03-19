@@ -1,0 +1,2 @@
+*.onnx filter=lfs diff=lfs merge=lfs -text
+Demo_structure/flood_resnet101_web_int8.onnx filter=lfs diff=lfs merge=lfs -text

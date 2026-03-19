@@ -1,4 +1,4 @@
-# Python
+# --- Python & Build ---
 __pycache__/
 *.py[cod]
 *$py.class
@@ -19,62 +19,71 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.pyc
 
-# Virtual Environment
+# --- Virtual Environments ---
 .venv/
 venv/
 ENV/
 env/
+Demo_structure/venv/
+airflow/venv/
 
-# Jupyter Notebook
-.ipynb_checkpoints
-
-# IDE
+# --- IDE & OS ---
 .vscode/
 .idea/
 *.swp
 *.swo
-
-# Data files (large)
-*.nc
-*.xlsx
-data/raw/sea_surface_temperature/
-Flood-Forecasting/
-
-# Logs
-*.log
-logs/
-
-# OS
 .DS_Store
 Thumbs.db
+desktop.ini
 
-node_modules
-dist
+# --- Jupyter Notebook ---
+.ipynb_checkpoints
+
+# --- Node.js / Frontend ---
+node_modules/
+package-lock.json
+
+# --- Environment Secrets (IMPORTANT) ---
 .env
 .env.*
 !.env.example
-data/
+airflow/.env
+airflow/config/gee-key.json
 
-# Model and Temp Files
-*.pth
-*.bin
-debug-r2.json
-list-r2.ts
-output.txt
-
-# Additional data/model patterns from main
-Data/
-airflow/Data/
-airflow/data_original/
-airflow/data_processed/
+# --- Data Files (Large/Local) ---
+*.nc
+*.xlsx
 *.npz
 *.tif
 *.csv
 *.h5
 *.pkl
-airflow/.env
-airflow/config/gee-key.json
-.streamlit/
+data/
+Data/
+airflow/Data/
+airflow/data_original/
+airflow/data_processed/
+Dashboard/Data_Training/
+Dashboard/Data_Visualize/
+Demo_structure/Data_Training/
+Demo_structure/Data_Visualize/
+Demo_structure/Notebook/DaNang_Flood_Local/
+
+# --- Machine Learning Models ---
+*.pth
+*.bin
+*.onnx
+# Lưu ý: Nếu bạn dùng Git LFS cho .onnx thì KHÔNG thêm *.onnx vào đây.
+# Nhưng nếu bạn muốn loại bỏ hẳn model khỏi Git thì hãy bỏ comment dòng dưới:
+# *.onnx
+
+# --- Logs & Temp ---
+*.log
+logs/
 airflow/logs/
-desktop.ini
+output.txt
+debug-r2.json
+list-r2.ts
+.streamlit/
