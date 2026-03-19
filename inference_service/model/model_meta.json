@@ -1,0 +1,33 @@
+{
+  "version": "v1.0",
+  "model_type": "RandomForestClassifier",
+  "trained_at": "2026-03-15T23:39:38.461616",
+  "accuracy": 0.85,
+  "f1_score": 0.4,
+  "n_estimators": 100,
+  "max_depth": 15,
+  "train_samples": 240,
+  "test_samples": 60,
+  "feature_names": [
+    "rainfall",
+    "soilMoisture",
+    "tide",
+    "dem",
+    "slope",
+    "flow",
+    "landCover"
+  ],
+  "feature_importances": {
+    "rainfall": 0.2279,
+    "soilMoisture": 0.1431,
+    "tide": 0.1124,
+    "dem": 0.2169,
+    "slope": 0.0942,
+    "flow": 0.162,
+    "landCover": 0.0435
+  },
+  "class_distribution": {
+    "no_flood": 238,
+    "flood": 62
+  }
+}

@@ -1,37 +1,80 @@
-# 1. DỮ LIỆU (Ignore toàn bộ data nặng)
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data files (large)
+*.nc
+*.xlsx
+data/raw/sea_surface_temperature/
+Flood-Forecasting/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+node_modules
+dist
+.env
+.env.*
+!.env.example
+data/
+
+# Model and Temp Files
+*.pth
+*.bin
+debug-r2.json
+list-r2.ts
+output.txt
+
+# Additional data/model patterns from main
 Data/
 airflow/Data/
 airflow/data_original/
 airflow/data_processed/
-
-# Ignore các file .npz lẻ tẻ nếu có lọt ra ngoài
 *.npz
 *.tif
 *.csv
-
-# 2. MODEL AI (Tránh đẩy file .pth nặng lên Git)
-*.pth
 *.h5
 *.pkl
-
-# 3. THÔNG TIN BẢO MẬT & CẤU HÌNH
-.env
 airflow/.env
 airflow/config/gee-key.json
-**/*.json
-# (Lưu ý: Nếu bạn có file json quan trọng không phải key thì hãy cân nhắc dòng trên)
-
-# 4. MÔI TRƯỜNG ẢO & RÁC HỆ THỐNG
-venv/
-.venv/
-env/
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
 .streamlit/
 airflow/logs/
-
-# Rác hệ điều hành
-.DS_Store
 desktop.ini
-Thumbs.db

@@ -1,0 +1,18 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install dependencies
+COPY inference_service/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy inference service code
+COPY inference_service/ ./inference_service/
+
+# Copy model if pre-trained
+COPY inference_service/model/ ./inference_service/model/ 2>/dev/null || true
+
+EXPOSE 8001
+
+# Run with uvicorn
+CMD ["uvicorn", "inference_service.main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "2"]

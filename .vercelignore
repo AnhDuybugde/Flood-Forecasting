@@ -1,0 +1,7 @@
+backend/scripts/
+notebooks/
+*.py
+requirements.txt
+.venv/
+data/
+venv/

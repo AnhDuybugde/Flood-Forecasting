@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="vi" class="light">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pixel Analytics Dashboard | National Flood Intelligence</title>
+
+    <!-- DNS Prefetch & Preconnect -->
+    <link rel="preconnect" href="https://cdn.tailwindcss.com" crossorigin />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms"></script>
+
+    <!-- Fonts -->
+    <link rel="preload"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap"
+        as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" />
+    </noscript>
+
+    <!-- Material Symbols -->
+    <link rel="preload"
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        as="style" onload="this.onload=null;this.rel='stylesheet'" />
+    <noscript>
+        <link rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" />
+    </noscript>
+
+    <!-- Chart.js + Annotation Plugin -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3" defer></script>
+
+    <!-- API Loader -->
+    <script src="js/core/config.js" defer></script>
+    <script src="js/core/data-loader.js" defer></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        gov: {
+                            50: '#eff6ff',
+                            100: '#dbeafe',
+                            200: '#bfdbfe',
+                            300: '#93c5fd',
+                            400: '#60a5fa',
+                            500: '#1d4ed8',
+                            600: '#1e40af',
+                            700: '#1e3a8a',
+                            800: '#172554',
+                            900: '#0c1524',
+                        },
+                        signal: {
+                            safe: '#059669',
+                            watch: '#d97706',
+                            warning: '#ea580c',
+                            critical: '#dc2626',
+                        },
+                        surface: {
+                            0: '#ffffff',
+                            1: '#f8fafc',
+                            2: '#f1f5f9',
+                            3: '#e2e8f0',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    boxShadow: {
+                        'gov': '0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.06)',
+                        'gov-md': '0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05)',
+                        'gov-lg': '0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* ── Base ── */
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        /* ── Tabular nums for data ── */
+        .data-val {
+            font-variant-numeric: tabular-nums;
+            letter-spacing: -0.02em;
+        }
+
+        .data-mono {
+            font-family: 'JetBrains Mono', monospace;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ── Custom scrollbar ── */
+        .gov-scroll::-webkit-scrollbar { width: 5px; height: 5px; }
+        .gov-scroll::-webkit-scrollbar-track { background: transparent; }
+        .gov-scroll::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 9999px; }
+        .gov-scroll::-webkit-scrollbar-thumb:hover { background-color: #94a3b8; }
+
+        /* ── Month slider ── */
+        input[type="range"].month-slider {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 6px;
+            background: #e2e8f0;
+            border-radius: 9999px;
+            outline: none;
+        }
+        input[type="range"].month-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #1d4ed8;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(29, 78, 216, 0.4);
+            transition: transform 0.15s ease;
+        }
+        input[type="range"].month-slider::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+
+        /* ── Card hover ── */
+        .card-hover { transition: box-shadow 0.2s ease, transform 0.15s ease; }
+        .card-hover:hover { box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1); transform: translateY(-1px); }
+
+        /* ── Skeleton loading ── */
+        .skeleton {
+            background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── Government stripe (top accent) ── */
+        .gov-stripe {
+            background: linear-gradient(90deg, #1e3a8a 0%, #1d4ed8 40%, #dc2626 60%, #b91c1c 100%);
+            height: 3px;
+        }
+
+        /* ── Heatmap cells ── */
+        .hm-0 { background: transparent; }
+        .hm-1 { background: rgba(59, 130, 246, 0.08); }
+        .hm-2 { background: rgba(59, 130, 246, 0.18); }
+        .hm-3 { background: rgba(59, 130, 246, 0.35); font-weight: 600; }
+        .hm-4 { background: rgba(220, 38, 38, 0.25); font-weight: 700; color: #991b1b; }
+
+        /* ── Stat card border accents ── */
+        .accent-left { border-left: 3px solid; }
+    </style>
+</head>
+
+<body class="bg-surface-1 text-slate-800 min-h-screen flex flex-col">
+    <!-- Government Top Stripe -->
+    <div class="gov-stripe"></div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         HEADER — Government/Institutional Style
+         ═══════════════════════════════════════════════════════════ -->
+    <header class="bg-white border-b border-slate-200 shadow-gov sticky top-0 z-40">
+        <div class="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Left: Navigation + Title -->
+                <div class="flex items-center gap-4">
+                    <a href="/"
+                        class="flex items-center gap-2 text-slate-500 hover:text-gov-500 transition-colors group">
+                        <span
+                            class="material-symbols-outlined text-xl group-hover:-translate-x-0.5 transition-transform">arrow_back</span>
+                        <span class="text-sm font-medium hidden sm:inline">Map View</span>
+                    </a>
+                    <div class="h-8 w-px bg-slate-200"></div>
+                    <div class="flex items-center gap-3">
+                        <div class="h-9 w-9 bg-gov-500/10 rounded-lg flex items-center justify-center">
+                            <span class="material-symbols-outlined text-gov-500 text-xl">analytics</span>
+                        </div>
+                        <div>
+                            <h1 class="text-base font-bold text-slate-900 leading-tight">Pixel Analytics Dashboard
+                            </h1>
+                            <p class="text-[11px] text-slate-500 font-medium leading-none mt-0.5">National Flood
+                                Monitoring & Early Warning System</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center: Coordinate Badge -->
+                <div class="hidden md:flex items-center gap-4">
+                    <div
+                        class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs">
+                        <span class="material-symbols-outlined text-slate-400 text-sm">location_on</span>
+                        <span class="font-mono font-medium text-slate-700" id="header-coords">--°N, --°E</span>
+                    </div>
+                    <div
+                        class="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs">
+                        <span class="material-symbols-outlined text-slate-400 text-sm">map</span>
+                        <span class="font-medium text-slate-700" id="header-region">Loading...</span>
+                    </div>
+                </div>
+
+                <!-- Right: Status & Actions -->
+                <div class="flex items-center gap-3">
+                    <div
+                        class="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold">
+                        <span class="relative flex h-2 w-2">
+                            <span
+                                class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                        </span>
+                        LIVE
+                    </div>
+                    <button id="btn-export"
+                        class="h-9 px-4 rounded-lg bg-gov-500 text-white text-xs font-semibold hover:bg-gov-600 transition-colors flex items-center gap-2 shadow-sm">
+                        <span class="material-symbols-outlined text-sm">download</span>
+                        Export
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         LOADING OVERLAY
+         ═══════════════════════════════════════════════════════════ -->
+    <div id="loading-overlay"
+        class="fixed inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center transition-opacity duration-500">
+        <div class="h-14 w-14 bg-gov-500/10 rounded-2xl flex items-center justify-center mb-5">
+            <span class="material-symbols-outlined text-gov-500 text-3xl animate-pulse">monitoring</span>
+        </div>
+        <h2 class="text-lg font-bold text-slate-800 mb-1">Initializing Dashboard</h2>
+        <p class="text-sm text-slate-500">Fetching pixel-level analytics data...</p>
+        <div class="w-48 h-1 bg-slate-100 rounded-full mt-5 overflow-hidden">
+            <div class="h-full bg-gov-500 rounded-full w-0 transition-all duration-1000" id="load-progress"></div>
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         MAIN CONTENT
+         ═══════════════════════════════════════════════════════════ -->
+    <main class="flex-1 max-w-[1800px] w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6" id="main-content"
+        style="opacity:0; transition: opacity 0.5s ease;">
+
+        <!-- ── ROW 1: STATIC TERRAIN METRICS (Date-Independent) ── -->
+        <section>
+            <div class="flex items-center gap-2 mb-4">
+                <span class="material-symbols-outlined text-slate-400 text-lg">terrain</span>
+                <h2 class="text-sm font-bold text-slate-700 uppercase tracking-wider">Terrain Profile</h2>
+                <span
+                    class="text-[10px] font-mono px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full border border-slate-200">STATIC</span>
+            </div>
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- DEM -->
+                <div
+                    class="bg-white rounded-xl border border-slate-200 p-5 shadow-gov card-hover accent-left border-l-teal-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="h-8 w-8 bg-teal-50 rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-teal-600 text-lg">elevation</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Elevation
+                                (DEM)</span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-2xl font-bold text-slate-900 data-val" id="kpi-dem">--</span>
+                        <span class="text-sm font-medium text-slate-400">m</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2">Mean elevation above sea level</p>
+                </div>
+                <!-- Slope -->
+                <div
+                    class="bg-white rounded-xl border border-slate-200 p-5 shadow-gov card-hover accent-left border-l-orange-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="h-8 w-8 bg-orange-50 rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-orange-600 text-lg">landscape</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Slope</span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-2xl font-bold text-slate-900 data-val" id="kpi-slope">--</span>
+                        <span class="text-sm font-medium text-slate-400">°</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2">Mean terrain gradient</p>
+                </div>
+                <!-- Flow Accumulation -->
+                <div
+                    class="bg-white rounded-xl border border-slate-200 p-5 shadow-gov card-hover accent-left border-l-blue-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="h-8 w-8 bg-blue-50 rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-blue-600 text-lg">water</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Flow
+                                Accumulation</span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-2xl font-bold text-slate-900 data-val" id="kpi-flow">--</span>
+                        <span class="text-sm font-medium text-slate-400">cells</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2">Upstream drainage cell count</p>
+                </div>
+                <!-- Land Cover -->
+                <div
+                    class="bg-white rounded-xl border border-slate-200 p-5 shadow-gov card-hover accent-left border-l-green-500">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="flex items-center gap-2">
+                            <div class="h-8 w-8 bg-green-50 rounded-lg flex items-center justify-center">
+                                <span class="material-symbols-outlined text-green-600 text-lg">forest</span>
+                            </div>
+                            <span class="text-xs font-semibold text-slate-500 uppercase tracking-wide">Land
+                                Cover</span>
+                        </div>
+                    </div>
+                    <div class="flex items-baseline gap-1">
+                        <span class="text-2xl font-bold text-slate-900 data-val" id="kpi-landcover">--</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 mt-2">Dominant Classification (MODIS)</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── ROW 2: HYDROLOGICAL TIMELINE + RISK OVERVIEW ── -->
+        <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <!-- 10-Day Timeline Chart (8 cols) -->
+            <div class="xl:col-span-8 bg-white rounded-xl border border-slate-200 shadow-gov overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="material-symbols-outlined text-gov-500 text-lg">timeline</span>
+                            10-Day Hydrological Timeline
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Recent 10 days with available data (observed)
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+                            <span class="w-5 h-0.5 bg-blue-600 rounded-full inline-block"></span>Rainfall
+                        </span>
+                        <span class="flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+                            <span class="w-5 h-0.5 bg-amber-500 rounded-full inline-block"></span>Soil Moisture
+                        </span>
+                    </div>
+                </div>
+                <div class="p-6">
+                    <div class="relative w-full" style="height: 280px;">
+                        <canvas id="chart-timeline"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Risk Summary Cards (4 cols) -->
+            <div class="xl:col-span-4 flex flex-col gap-4">
+                <!-- Current Date KPI -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-gov flex-1">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Focus Date</div>
+                    <div class="text-xl font-bold text-gov-500 data-mono" id="kpi-focus-date">--</div>
+                    <div class="mt-3 flex items-center gap-2">
+                        <span class="text-[10px] px-2 py-0.5 rounded-full font-semibold" id="kpi-date-badge">--</span>
+                    </div>
+                </div>
+                <!-- Rainfall KPI -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-gov flex-1">
+                    <div class="flex items-center justify-between">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Rainfall (24h)
+                        </div>
+                        <span
+                            class="text-[9px] font-mono px-1.5 py-0.5 bg-blue-50 text-blue-600 rounded border border-blue-100">mm</span>
+                    </div>
+                    <div class="flex items-baseline gap-2 mt-2">
+                        <span class="text-3xl font-bold text-slate-900 data-val" id="kpi-rainfall">--</span>
+                    </div>
+                    <div class="flex items-center gap-1 mt-2" id="kpi-rain-trend">
+                        <span class="material-symbols-outlined text-sm text-slate-400">trending_flat</span>
+                        <span class="text-[10px] text-slate-400">vs previous day</span>
+                    </div>
+                </div>
+                <!-- Soil Moisture KPI -->
+                <div class="bg-white rounded-xl border border-slate-200 p-5 shadow-gov flex-1">
+                    <div class="flex items-center justify-between">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Soil Moisture</div>
+                        <span
+                            class="text-[9px] font-mono px-1.5 py-0.5 bg-amber-50 text-amber-600 rounded border border-amber-100">VWC
+                            %</span>
+                    </div>
+                    <div class="flex items-baseline gap-2 mt-2">
+                        <span class="text-3xl font-bold text-slate-900 data-val" id="kpi-soil">--</span>
+                        <span class="text-sm text-slate-400">%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-slate-100 rounded-full mt-3 overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-500" id="kpi-soil-bar"
+                            style="width:0%; background:#d97706;"></div>
+                    </div>
+                </div>
+                <!-- Flood Risk KPI -->
+                <div class="bg-white rounded-xl border-2 p-5 shadow-gov flex-1" id="kpi-risk-card">
+                    <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Flood Risk Level</div>
+                    <div class="flex items-center gap-3 mt-2">
+                        <span class="text-2xl font-extrabold uppercase tracking-wide" id="kpi-risk-text">--</span>
+                        <span class="material-symbols-outlined text-2xl" id="kpi-risk-icon">shield</span>
+                    </div>
+                    <div class="flex items-center gap-2 mt-2">
+                        <div class="flex-1 h-1.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full rounded-full transition-all duration-500" id="kpi-confidence-bar"
+                                style="width:0%; background:#1d4ed8;"></div>
+                        </div>
+                        <span class="text-[10px] font-mono text-slate-500" id="kpi-confidence-val">--</span>
+                    </div>
+                    <p class="text-[10px] text-slate-500 mt-1" id="kpi-risk-desc">ML Inference confidence</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── ROW 3: SEASONALITY + STATISTICS ── -->
+        <section class="grid grid-cols-1 xl:grid-cols-12 gap-6">
+            <!-- Seasonality Chart (8 cols) -->
+            <div class="xl:col-span-8 bg-white rounded-xl border border-slate-200 shadow-gov overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="material-symbols-outlined text-gov-500 text-lg">calendar_month</span>
+                            Seasonal Rainfall Pattern (2020 — 2025)
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5">Year-over-year monthly comparison at this
+                            coordinate</p>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-semibold text-slate-600" id="month-slider-label">All Months</span>
+                    </div>
+                </div>
+                <!-- Month Slider -->
+                <div class="px-6 pt-4 pb-2">
+                    <div class="flex items-center gap-4">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase w-10">Month</span>
+                        <input type="range" min="0" max="12" value="0" step="1"
+                            class="month-slider flex-1" id="month-slider" />
+                        <span class="text-xs font-mono font-semibold text-gov-500 w-8 text-right"
+                            id="month-slider-val">All</span>
+                    </div>
+                    <div class="flex justify-between text-[9px] text-slate-400 font-mono mt-1 px-10">
+                        <span>All</span>
+                        <span>Jan</span>
+                        <span>Feb</span>
+                        <span>Mar</span>
+                        <span>Apr</span>
+                        <span>May</span>
+                        <span>Jun</span>
+                        <span>Jul</span>
+                        <span>Aug</span>
+                        <span>Sep</span>
+                        <span>Oct</span>
+                        <span>Nov</span>
+                        <span>Dec</span>
+                    </div>
+                </div>
+                <div class="px-6 pb-6">
+                    <div class="relative w-full" style="height: 260px;">
+                        <canvas id="chart-seasonality"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Regional Statistics Panel (4 cols) -->
+            <div class="xl:col-span-4 flex flex-col gap-4">
+                <!-- Stats Card -->
+                <div class="bg-white rounded-xl border border-slate-200 shadow-gov flex-1 overflow-hidden">
+                    <div class="px-5 py-4 border-b border-slate-100">
+                        <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                            <span class="material-symbols-outlined text-gov-500 text-lg">bar_chart</span>
+                            Regional Statistics
+                        </h3>
+                        <p class="text-[11px] text-slate-500 mt-0.5" id="stats-region-label">Loading region data...</p>
+                    </div>
+                    <div class="p-5 gov-scroll overflow-y-auto" style="max-height: 360px;">
+                        <table class="w-full text-sm">
+                            <tbody id="stats-table-body">
+                                <tr class="border-b border-slate-100">
+                                    <td class="py-3 text-xs text-slate-500 font-medium">Avg. Rainfall / Day</td>
+                                    <td class="py-3 text-right font-mono font-semibold text-slate-800" id="stat-avg-rain">--</td>
+                                </tr>
+                                <tr class="border-b border-slate-100">
+                                    <td class="py-3 text-xs text-slate-500 font-medium">Max Rainfall (Single Day)</td>
+                                    <td class="py-3 text-right font-mono font-semibold text-slate-800" id="stat-max-rain">--</td>
+                                </tr>
+                                <tr class="border-b border-slate-100">
+                                    <td class="py-3 text-xs text-slate-500 font-medium">Total Rainfall (Period)</td>
+                                    <td class="py-3 text-right font-mono font-semibold text-slate-800" id="stat-total-rain">--</td>
+                                </tr>
+                                <tr class="border-b border-slate-100">
+                                    <td class="py-3 text-xs text-slate-500 font-medium">Avg. Soil Moisture</td>
+                                    <td class="py-3 text-right font-mono font-semibold text-slate-800" id="stat-avg-soil">--</td>
+                                </tr>
+                                <tr class="border-b border-slate-100">
+                                    <td class="py-3 text-xs text-slate-500 font-medium">Peak Soil Moisture</td>
+                                    <td class="py-3 text-right font-mono font-semibold text-slate-800" id="stat-max-soil">--</td>
+                                </tr>
+                                <tr class="border-b border-slate-100">
+                                    <td class="py-3 text-xs text-slate-500 font-medium">Days w/ Rainfall &gt; 20mm</td>
+                                    <td class="py-3 text-right font-mono font-semibold text-red-600" id="stat-heavy-days">--</td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 text-xs text-slate-500 font-medium">Observation Period</td>
+                                    <td class="py-3 text-right font-mono font-semibold text-slate-800" id="stat-period">--</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Data Source Attribution -->
+                <div class="bg-gov-800 rounded-xl p-5 text-white relative overflow-hidden">
+                    <div
+                        class="absolute top-0 right-0 w-32 h-32 bg-gov-500 blur-3xl rounded-full opacity-20 -mr-10 -mt-10 pointer-events-none">
+                    </div>
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="material-symbols-outlined text-sm text-blue-300">verified</span>
+                        <h4 class="text-xs font-bold uppercase tracking-wider text-blue-200">Data Provenance</h4>
+                    </div>
+                    <div class="space-y-2 text-xs text-slate-300">
+                        <div class="flex justify-between"><span class="text-slate-400">Satellite</span><span
+                                class="font-mono text-white">MODIS + Sentinel-1</span></div>
+                        <div class="flex justify-between"><span class="text-slate-400">DEM</span><span
+                                class="font-mono text-white">SRTM 30m</span></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Soil</span><span
+                                class="font-mono text-white">ERA5-Land VWC</span></div>
+                        <div class="flex justify-between"><span class="text-slate-400">Resolution</span><span
+                                class="font-mono text-white">~1km Grid</span></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── ROW 3b: ML PREDICTION PANEL ── -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-gov overflow-hidden" id="ml-prediction-section">
+            <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <span class="material-symbols-outlined text-gov-500 text-lg">psychology</span>
+                        ML Flood Prediction
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Real-time machine learning inference for this pixel</p>
+                </div>
+                <div class="flex items-center gap-2">
+                    <span class="text-[10px] font-mono px-2 py-0.5 rounded-full border" id="ml-model-badge">Model: --</span>
+                    <span class="text-[10px] font-mono px-2 py-0.5 bg-blue-50 text-blue-600 rounded-full border border-blue-100" id="ml-latency-badge">-- ms</span>
+                </div>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <!-- Prediction Result -->
+                    <div class="flex flex-col items-center justify-center p-6 rounded-xl border-2" id="ml-result-card">
+                        <span class="material-symbols-outlined text-4xl mb-2" id="ml-result-icon">shield</span>
+                        <span class="text-3xl font-extrabold uppercase tracking-wide" id="ml-result-risk">--</span>
+                        <div class="flex items-center gap-2 mt-3">
+                            <span class="text-xs text-slate-500">Confidence:</span>
+                            <span class="text-sm font-bold font-mono" id="ml-result-confidence">--%</span>
+                        </div>
+                    </div>
+
+                    <!-- Probability Gauge -->
+                    <div class="flex flex-col">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Flood Probability</div>
+                        <div class="flex-1 flex flex-col justify-center gap-3">
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-emerald-600 font-medium">No Flood</span>
+                                    <span class="font-mono font-semibold" id="ml-prob-noflood">--%</span>
+                                </div>
+                                <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-emerald-500 rounded-full transition-all duration-700" id="ml-bar-noflood" style="width:0%"></div>
+                                </div>
+                            </div>
+                            <div>
+                                <div class="flex justify-between text-xs mb-1">
+                                    <span class="text-red-600 font-medium">Flood</span>
+                                    <span class="font-mono font-semibold" id="ml-prob-flood">--%</span>
+                                </div>
+                                <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-red-500 rounded-full transition-all duration-700" id="ml-bar-flood" style="width:0%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Feature Importance -->
+                    <div class="flex flex-col">
+                        <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3">Input Features</div>
+                        <div class="flex-1 flex flex-col justify-center gap-1.5 text-xs" id="ml-features-list">
+                            <!-- Generated by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ── ROW 4: EXPLORATORY DATA TABLE ── -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-gov overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <span class="material-symbols-outlined text-gov-500 text-lg">table_chart</span>
+                        Exploratory Data Table
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Click any row to update the timeline focus. Heatmap
+                        intensity reflects magnitude.</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-1.5 text-[10px] text-slate-500">
+                        <div class="w-3 h-3 rounded-sm hm-1 border border-slate-200"></div>Low
+                        <div class="w-3 h-3 rounded-sm hm-2 border border-slate-200 ml-1"></div>Med
+                        <div class="w-3 h-3 rounded-sm hm-3 border border-slate-200 ml-1"></div>High
+                        <div class="w-3 h-3 rounded-sm hm-4 border border-slate-200 ml-1"></div>Critical
+                    </div>
+                </div>
+            </div>
+            <div class="overflow-x-auto gov-scroll" style="max-height: 400px; overflow-y: auto;">
+                <table class="w-full text-sm text-left whitespace-nowrap">
+                    <thead
+                        class="text-[10px] uppercase font-bold tracking-wider text-slate-500 bg-slate-50 sticky top-0 z-10">
+                        <tr>
+                            <th class="px-6 py-3 border-b border-slate-200 w-36">Date</th>
+                            <th class="px-4 py-3 border-b border-slate-200 text-right w-28">Rainfall (mm)</th>
+                            <th class="px-4 py-3 border-b border-slate-200 text-right w-28">Soil Moisture (%)</th>
+                            <th class="px-4 py-3 border-b border-slate-200 text-center w-28">Type</th>
+                            <th class="px-4 py-3 border-b border-slate-200 text-center w-28">Risk Level</th>
+                        </tr>
+                    </thead>
+                    <tbody id="eda-table-body" class="divide-y divide-slate-100">
+                        <!-- Rows generated by JS -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         FOOTER — Government Attribution
+         ═══════════════════════════════════════════════════════════ -->
+    <footer class="bg-white border-t border-slate-200 mt-auto">
+        <div class="max-w-[1800px] mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
+            <span>&copy; 2024–2026 National Flood Monitoring System — All Rights Reserved</span>
+            <span class="font-mono">Dashboard v2.0 — Last sync: <span id="footer-sync-time">--</span></span>
+        </div>
+    </footer>
+
+    <!-- ═══════════════════════════════════════════════════════════
+         DASHBOARD CONTROLLER SCRIPT
+         ═══════════════════════════════════════════════════════════ -->
+    <script src="js/dashboard/dashboard.js" defer></script>
+</body>
+
+</html>

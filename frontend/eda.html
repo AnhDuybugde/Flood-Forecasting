@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EDA Analytics · Vietnam Flood Prediction</title>
+    <meta name="description" content="Phân tích khám phá dữ liệu (EDA) vùng lũ Việt Nam — 58 biểu đồ tương tác chi tiết.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8"></script>
+    <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.1/css/buttons.dataTables.min.css">
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root {
+            --bg: #0b1120; --bg-card: rgba(15, 23, 42, 0.85); --bg-card-solid: #111827;
+            --bg-hover: rgba(30,41,59,0.7); --border: rgba(99,102,241,0.15);
+            --text: #e2e8f0; --text-dim: #94a3b8; --text-muted: #64748b;
+            --accent: #6366f1; --accent2: #0ea5e9; --accent3: #10b981;
+            --danger: #ef4444; --warn: #f59e0b;
+            --glass: rgba(15,23,42,0.6); --glass-border: rgba(99,102,241,0.2);
+            --shadow: 0 4px 24px rgba(0,0,0,0.4);
+            --radius: 14px; --radius-sm: 8px;
+        }
+        html, body { height: 100%; }
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg); color: var(--text);
+            display: flex; min-height: 100vh; overflow: hidden;
+        }
+        .sidebar {
+            width: 260px; min-width: 260px;
+            background: linear-gradient(180deg, #0f172a 0%, #1e1b4b 100%);
+            border-right: 1px solid var(--glass-border);
+            display: flex; flex-direction: column; height: 100vh; position: sticky; top: 0; z-index: 100;
+        }
+        .sidebar-brand { padding: 20px 18px 16px; border-bottom: 1px solid var(--glass-border); }
+        .sidebar-brand h1 {
+            font-size: 15px; font-weight: 800;
+            background: linear-gradient(135deg, #818cf8, #38bdf8);
+            -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+            letter-spacing: -0.3px;
+        }
+        .sidebar-brand p { font-size: 11px; color: var(--text-dim); margin-top: 3px; }
+        .sidebar-nav { flex: 1; overflow-y: auto; padding: 12px 10px; }
+        .sidebar-nav::-webkit-scrollbar { width: 3px; }
+        .sidebar-nav::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+        .nav-section-label {
+            font-size: 10px; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 1.2px; padding: 14px 12px 6px; user-select: none;
+        }
+        .nav-item {
+            display: flex; align-items: center; gap: 10px;
+            padding: 10px 14px; border-radius: 10px;
+            font-size: 13px; font-weight: 500; color: var(--text-dim);
+            cursor: pointer; transition: all 0.2s; user-select: none; margin-bottom: 2px;
+        }
+        .nav-item:hover { background: var(--bg-hover); color: var(--text); }
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(99,102,241,0.25), rgba(14,165,233,0.15));
+            color: #fff; font-weight: 700; box-shadow: inset 0 0 0 1px var(--glass-border);
+        }
+        .nav-item .material-icons { font-size: 19px; opacity: 0.8; }
+        .nav-item.active .material-icons { opacity: 1; }
+        .nav-badge {
+            margin-left: auto; font-size: 10px; font-weight: 700;
+            background: rgba(99,102,241,0.3); color: #a5b4fc; padding: 2px 7px; border-radius: 20px;
+        }
+        .sidebar-footer {
+            padding: 14px 18px; border-top: 1px solid var(--glass-border);
+            font-size: 11px; color: var(--text-muted);
+        }
+        .sidebar-footer a { color: var(--accent2); text-decoration: none; font-weight: 600; }
+        .main-area { flex: 1; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        .topbar {
+            height: 56px; min-height: 56px; background: var(--glass);
+            backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+            display: flex; align-items: center; justify-content: space-between; padding: 0 24px; gap: 12px;
+        }
+        .topbar-left { display: flex; align-items: center; gap: 14px; }
+        .topbar-title { font-size: 15px; font-weight: 700; color: #fff; }
+        .topbar-right { display: flex; align-items: center; gap: 10px; }
+        .tb-badge {
+            display: flex; align-items: center; gap: 5px;
+            background: rgba(30,41,59,0.8); border: 1px solid var(--glass-border);
+            padding: 5px 12px; border-radius: 8px; font-size: 12px; color: var(--text-dim); font-family: 'Inter', monospace;
+        }
+        .tb-badge .material-icons { font-size: 14px; }
+        select.tb-select {
+            background: rgba(30,41,59,0.9); border: 1px solid var(--glass-border);
+            border-radius: 8px; padding: 6px 10px; font-size: 12px;
+            color: var(--text); font-family: 'Inter', sans-serif; outline: none; cursor: pointer;
+        }
+        select.tb-select:focus { border-color: var(--accent); }
+        .btn-go {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: #fff; border: none; border-radius: 8px;
+            padding: 6px 18px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: 'Inter';
+        }
+        .btn-go:hover { opacity: 0.85; }
+        .content-area {
+            flex: 1; overflow-y: auto; padding: 24px;
+            background: linear-gradient(180deg, var(--bg) 0%, #0f172a 100%);
+        }
+        .content-area::-webkit-scrollbar { width: 6px; }
+        .content-area::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+        .subpage { display: none; }
+        .subpage.active { display: block; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .page-hdr { margin-bottom: 20px; }
+        .page-hdr h2 {
+            font-size: 22px; font-weight: 800; color: #fff;
+            display: flex; align-items: center; gap: 10px; letter-spacing: -0.4px;
+        }
+        .page-hdr p { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+        .card {
+            background: var(--bg-card); border: 1px solid var(--glass-border);
+            border-radius: var(--radius); overflow: hidden; backdrop-filter: blur(8px);
+            box-shadow: var(--shadow); transition: border-color 0.2s;
+        }
+        .card:hover { border-color: rgba(99,102,241,0.35); }
+        .card-hdr {
+            padding: 14px 18px; border-bottom: 1px solid var(--border);
+            display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;
+        }
+        .card-title { font-size: 13px; font-weight: 700; color: #e2e8f0; display: flex; align-items: center; gap: 7px; }
+        .card-title .material-icons { font-size: 18px; }
+        .card-body { padding: 16px; }
+        .card-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+        .ctrl-label { font-size: 11px; font-weight: 600; color: var(--text-muted); }
+        select.ctrl-select {
+            background: rgba(30,41,59,0.8); border: 1px solid var(--glass-border);
+            border-radius: 6px; padding: 4px 10px; font-size: 12px; color: var(--text); font-family: 'Inter'; outline: none;
+        }
+        input[type="range"].ctrl-range { accent-color: var(--accent); height: 4px; cursor: pointer; }
+        .badge-sm { font-size: 10px; background: rgba(99,102,241,0.2); color: #a5b4fc; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+        .btn-sm {
+            display: inline-flex; align-items: center; gap: 5px;
+            padding: 5px 12px; border-radius: 7px; font-size: 12px;
+            font-weight: 600; cursor: pointer; border: 1px solid var(--glass-border);
+            background: transparent; color: var(--text-dim); transition: all 0.15s; font-family: 'Inter';
+        }
+        .btn-sm:hover { background: var(--bg-hover); color: #fff; border-color: var(--accent); }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+        .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+        @media (max-width: 1200px) { .grid-3, .grid-4 { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 800px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } }
+        .mt-16 { margin-top: 16px; }
+        .progress-wrap { background: var(--bg-card); border: 1px solid var(--glass-border); border-radius: 10px; padding: 12px 16px; margin-bottom: 16px; }
+        .progress-bar-track { height: 5px; background: rgba(51,65,85,0.5); border-radius: 99px; overflow: hidden; margin-top: 6px; }
+        .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 99px; transition: width 0.3s; }
+        .card-body.collapsed { max-height: 0 !important; overflow: hidden; opacity: 0; padding: 0 16px; transition: all 0.3s ease; }
+        .extract-panel { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+        .extract-chip {
+            display: flex; align-items: center; gap: 6px;
+            background: rgba(30,41,59,0.7); border: 1px solid var(--glass-border);
+            padding: 5px 12px; border-radius: 8px; font-size: 12px;
+        }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .toast { padding: 10px 18px; border-radius: 10px; font-size: 13px; font-weight: 500; box-shadow: 0 4px 24px rgba(0,0,0,0.4); animation: toastIn 0.3s ease; backdrop-filter: blur(12px); }
+        .toast-success { background: rgba(16,185,129,0.9); color: #fff; }
+        .toast-error { background: rgba(239,68,68,0.9); color: #fff; }
+        .toast-info { background: rgba(99,102,241,0.9); color: #fff; }
+        .dataTables_wrapper { color: var(--text); }
+        .dataTables_wrapper .dataTables_filter input { background: rgba(30,41,59,0.8); border: 1px solid var(--glass-border); border-radius: 6px; padding: 4px 8px; font-size: 12px; color: var(--text); }
+        .dataTables_wrapper .dt-buttons .dt-button { border: 1px solid var(--glass-border) !important; border-radius: 6px; padding: 4px 10px; font-size: 11px; color: var(--text-dim) !important; background: rgba(30,41,59,0.5) !important; }
+        table.dataTable { border-collapse: collapse; }
+        table.dataTable thead th { background: rgba(30,41,59,0.8); font-size: 12px; color: var(--text-dim); border-bottom: 1px solid var(--glass-border) !important; }
+        table.dataTable tbody td { font-size: 12px; border-bottom: 1px solid rgba(51,65,85,0.3) !important; color: var(--text); }
+        table.dataTable tbody tr:hover { background: rgba(99,102,241,0.08) !important; }
+        .dataTables_info, .dataTables_paginate { color: var(--text-muted) !important; font-size: 11px; }
+        .dataTables_paginate .paginate_button { color: var(--text-dim) !important; }
+        .dataTables_paginate .paginate_button.current { background: var(--accent) !important; color: #fff !important; border-radius: 6px; }
+        .table-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--glass-border); overflow-x: auto; }
+        .table-tab { padding: 10px 16px; font-size: 12px; font-weight: 500; color: var(--text-muted); border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .table-tab:hover { color: var(--text); }
+        .table-tab.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 700; }
+        .ttab-content { display: none; }
+        .ttab-content.active { display: block; }
+        .js-plotly-plot .plotly .modebar { background: transparent !important; }
+        .js-plotly-plot .plotly .modebar-btn { color: var(--text-muted) !important; }
+        .waffle-grid { display: grid; grid-template-columns: repeat(20, 1fr); gap: 2px; max-width: 400px; margin: 0 auto; }
+        .waffle-cell { aspect-ratio: 1; border-radius: 3px; transition: transform 0.15s; cursor: pointer; }
+        .waffle-cell:hover { transform: scale(1.3); z-index: 2; }
+    </style>
+</head>
+<body>
+
+<aside class="sidebar">
+    <div class="sidebar-brand">
+        <h1>🌊 Vietnam Flood EDA</h1>
+        <p>58 Interactive Visualizations</p>
+    </div>
+    <nav class="sidebar-nav">
+        <div class="nav-section-label">Phân tích theo đối tượng</div>
+        <div class="nav-item active" data-page="spatial"><span class="material-icons" style="color:#818cf8">grid_on</span> Spatial Overview<span class="nav-badge">15</span></div>
+        <div class="nav-item" data-page="meteo"><span class="material-icons" style="color:#38bdf8">thunderstorm</span> Khí Tượng</div>
+        <div class="nav-item" data-page="terrain"><span class="material-icons" style="color:#34d399">terrain</span> Địa Hình</div>
+        <div class="nav-item" data-page="landcover"><span class="material-icons" style="color:#fbbf24">forest</span> Thảm Phủ<span class="nav-badge">+5</span></div>
+        <div class="nav-item" data-page="flood"><span class="material-icons" style="color:#f87171">flood</span> Ngập Lụt<span class="nav-badge">+4</span></div>
+
+        <div class="nav-section-label">Phân tích thống kê</div>
+        <div class="nav-item" data-page="distribution"><span class="material-icons" style="color:#a78bfa">bar_chart</span> Phân Phối<span class="nav-badge">+4</span></div>
+        <div class="nav-item" data-page="correlation"><span class="material-icons" style="color:#fb923c">bubble_chart</span> Tương Quan<span class="nav-badge">+4</span></div>
+
+        <div class="nav-section-label">Chuỗi thời gian & Nâng cao</div>
+        <div class="nav-item" data-page="timeseries"><span class="material-icons" style="color:#2dd4bf">timeline</span> Chuỗi Thời Gian<span class="nav-badge">8</span></div>
+        <div class="nav-item" data-page="advanced"><span class="material-icons" style="color:#e879f9">science</span> Nâng Cao<span class="nav-badge">5</span></div>
+        <div class="nav-item" data-page="tables"><span class="material-icons" style="color:#94a3b8">table_chart</span> Bảng Dữ Liệu</div>
+    </nav>
+    <div class="sidebar-footer">
+        <a href="/index.html"><span class="material-icons" style="font-size:14px;vertical-align:middle">arrow_back</span> Dashboard</a>
+        <span style="float:right" id="footer-load-time"></span>
+    </div>
+</aside>
+
+<div class="main-area">
+    <header class="topbar">
+        <div class="topbar-left"><span class="topbar-title" id="topbar-title">Spatial Overview</span></div>
+        <div class="topbar-right">
+            <div class="tb-badge"><span class="material-icons">schedule</span><span id="nav-clock">--:--:--</span></div>
+            <div class="tb-badge"><span class="material-icons">place</span><span id="tb-region">DaNang</span></div>
+            <select id="date-select" class="tb-select"><option value="">Loading...</option></select>
+            <button id="btn-go" class="btn-go">Tải Dữ Liệu</button>
+        </div>
+    </header>
+
+    <div class="content-area" id="content-area">
+        <div id="progress-wrap" class="progress-wrap" style="display:none">
+            <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--text-dim)">
+                <span id="progress-text">Đang tải...</span><span id="progress-pct">0%</span>
+            </div>
+            <div class="progress-bar-track"><div id="progress-fill" class="progress-bar-fill" style="width:0%"></div></div>
+        </div>
+
+        <!-- ═══ PAGE 1: Spatial Overview ═══ -->
+        <div id="page-spatial" class="subpage active">
+            <div class="page-hdr">
+                <h2><span class="material-icons" style="color:#818cf8">grid_on</span> Spatial Overview — 15 Biểu Đồ Không Gian</h2>
+                <p>Heatmaps, Contour, Overlay, Choropleth, Difference Map, Risk Zone, Animated</p>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:16px">
+                <button id="btn-expand-all" class="btn-sm"><span class="material-icons" style="font-size:15px">unfold_more</span> Mở tất cả</button>
+                <button id="btn-collapse-all" class="btn-sm"><span class="material-icons" style="font-size:15px">unfold_less</span> Thu gọn</button>
+            </div>
+            <div id="spatial-plots" style="display:flex;flex-direction:column;gap:16px"></div>
+            <!-- New spatial charts -->
+            <div class="mt-16 grid-2">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#06b6d4">show_chart</span> Contour Map — DEM</div></div><div class="card-body"><div id="spatial-contour"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f43f5e">layers</span> Overlay — DEM + Flood</div></div><div class="card-body"><div id="spatial-overlay"></div></div></div>
+            </div>
+            <div class="mt-16 grid-2">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#fbbf24">palette</span> Choropleth — LULC</div></div><div class="card-body"><div id="spatial-classified"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#ef4444">warning</span> Risk Zone Highlight</div></div><div class="card-body"><div id="spatial-riskzone"></div></div></div>
+            </div>
+            <div class="mt-16">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#a78bfa">compare</span> Difference Map — Rain (Ngày A − Ngày B)</div>
+                    <div class="card-controls"><span class="ctrl-label">Ngày B:</span><select id="diff-date-b" class="ctrl-select"><option>Loading...</option></select><button id="btn-diff-load" class="btn-sm">Tính hiệu</button></div>
+                </div><div class="card-body"><div id="spatial-difference"></div></div></div>
+            </div>
+            <div class="mt-16">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#2dd4bf">play_circle</span> Animated Heatmap — Rain (Nhiều ngày)</div>
+                    <div class="card-controls"><button id="btn-anim-play" class="btn-sm"><span class="material-icons" style="font-size:15px">play_arrow</span> Play</button><span class="ctrl-label" id="anim-frame-label">--</span></div>
+                </div><div class="card-body"><div id="spatial-animated"></div></div></div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 2: Khí Tượng ═══ -->
+        <div id="page-meteo" class="subpage">
+            <div class="page-hdr"><h2><span class="material-icons" style="color:#38bdf8">thunderstorm</span> Khí Tượng — Rain · Tide · Soil Moisture</h2><p>Phân tích chuyên sâu các biến khí tượng thủy văn</p></div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="grid-3">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#38bdf8">water_drop</span> Lượng Mưa 24h</div></div><div class="card-body"><div id="meteo-rain-heatmap"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#06b6d4">sailing</span> Mực Thuỷ Triều</div></div><div class="card-body"><div id="meteo-tide-heatmap"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f97316">grass</span> Độ Ẩm Đất</div></div><div class="card-body"><div id="meteo-soil-heatmap"></div></div></div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#a78bfa">equalizer</span> Histogram So Sánh 3 Biến</div></div><div class="card-body"><div id="meteo-histogram"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f59e0b">candlestick_chart</span> Box Plot So Sánh</div></div><div class="card-body"><div id="meteo-boxplot"></div></div></div>
+                </div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#ef4444">scatter_plot</span> Rain vs Soil Moisture (color=Flood)</div></div><div class="card-body"><div id="meteo-scatter"></div></div></div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 3: Địa Hình ═══ -->
+        <div id="page-terrain" class="subpage">
+            <div class="page-hdr"><h2><span class="material-icons" style="color:#34d399">terrain</span> Địa Hình — DEM · Slope · Flow</h2><p>Phân tích mô hình độ cao, độ dốc, tích lũy dòng chảy</p></div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="grid-3">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#34d399">landscape</span> DEM</div></div><div class="card-body"><div id="terrain-dem-heatmap"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f43f5e">signal_cellular_alt</span> Slope</div></div><div class="card-body"><div id="terrain-slope-heatmap"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#6366f1">waves</span> Flow Accumulation</div></div><div class="card-body"><div id="terrain-flow-heatmap"></div></div></div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#818cf8">3d_rotation</span> DEM 3D Surface</div></div><div class="card-body"><div id="terrain-3d"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#fb923c">scatter_plot</span> DEM vs Slope</div></div><div class="card-body"><div id="terrain-scatter"></div></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 4: Thảm Phủ ═══ -->
+        <div id="page-landcover" class="subpage">
+            <div class="page-hdr"><h2><span class="material-icons" style="color:#fbbf24">forest</span> Thảm Phủ — Land Use / Land Cover (9 biểu đồ)</h2><p>Pie, Bar, Stacked, Grouped, Sunburst, Treemap, Mosaic, Waffle, Heatmap</p></div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#fbbf24">map</span> LULC Heatmap</div></div><div class="card-body"><div id="lc-heatmap"></div></div></div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f59e0b">pie_chart</span> LULC Distribution</div></div><div class="card-body"><div id="lc-pie"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#34d399">view_list</span> LULC Bar Chart</div></div><div class="card-body"><div id="lc-bar"></div></div></div>
+                </div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#06b6d4">account_tree</span> Treemap</div></div><div class="card-body"><div id="lc-treemap"></div></div></div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#ef4444">stacked_bar_chart</span> Stacked Bar — Flood per LULC</div></div><div class="card-body"><div id="lc-stacked-bar"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#818cf8">bar_chart</span> Grouped Bar — Mean per LULC</div></div><div class="card-body"><div id="lc-grouped-bar"></div></div></div>
+                </div>
+                <div class="grid-3">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#fb923c">donut_large</span> Sunburst</div></div><div class="card-body"><div id="lc-sunburst"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#a78bfa">grid_view</span> Mosaic</div></div><div class="card-body"><div id="lc-mosaic"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#2dd4bf">apps</span> Waffle Chart</div></div><div class="card-body"><div id="lc-waffle"></div></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 5: Ngập Lụt ═══ -->
+        <div id="page-flood" class="subpage">
+            <div class="page-hdr"><h2><span class="material-icons" style="color:#f87171">flood</span> Ngập Lụt — 9 Biểu Đồ Phân Tích Lũ</h2><p>Binary Map, Pie, Scatter, Profile, ROC, Feature Importance, Conditional Dist, Decision Boundary</p></div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#ef4444">warning_amber</span> Flood Binary Map</div></div><div class="card-body"><div id="flood-heatmap"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f87171">pie_chart</span> Flood vs Normal</div></div><div class="card-body"><div id="flood-pie"></div></div></div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#fb923c">scatter_plot</span> Rain vs DEM (Color=Flood)</div></div><div class="card-body"><div id="flood-scatter"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#a78bfa">compare</span> Flood vs Normal — Mean Per Layer</div></div><div class="card-body"><div id="flood-profile"></div></div></div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#2dd4bf">show_chart</span> ROC-like Curve</div><span class="badge-sm">Flood % vs Rain Threshold</span></div><div class="card-body"><div id="flood-roc"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#818cf8">leaderboard</span> Feature Importance</div></div><div class="card-body"><div id="flood-feature"></div></div></div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f59e0b">equalizer</span> Conditional Distribution</div><span class="badge-sm">Rain | Flood vs Rain | Normal</span></div><div class="card-body"><div id="flood-cond-dist"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#e879f9">grid_on</span> Decision Boundary</div><span class="badge-sm">Rain × DEM → Flood</span></div><div class="card-body"><div id="flood-decision"></div></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 6: Phân Phối ═══ -->
+        <div id="page-distribution" class="subpage">
+            <div class="page-hdr"><h2><span class="material-icons" style="color:#a78bfa">bar_chart</span> Phân Phối — 8 Biểu Đồ</h2><p>Histogram, Violin, Box, Quantile, KDE, Ridgeline, CDF, Strip</p></div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="grid-2">
+                    <div class="card">
+                        <div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#818cf8">equalizer</span> Histogram</div>
+                            <div class="card-controls"><span class="ctrl-label">Layer:</span><select id="hist-layer-select" class="ctrl-select"></select><span class="ctrl-label">Bins: <span id="hist-bins-label">40</span></span><input type="range" id="hist-bins" class="ctrl-range" min="10" max="120" value="40" style="width:80px"></div>
+                        </div><div class="card-body"><div id="chart-histogram"></div></div>
+                    </div>
+                    <div class="card">
+                        <div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#c084fc">leaderboard</span> Violin Plot</div>
+                            <div class="card-controls"><span class="ctrl-label">Layer:</span><select id="violin-layer-select" class="ctrl-select"></select></div>
+                        </div><div class="card-body"><div id="chart-violin"></div></div>
+                    </div>
+                </div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#fbbf24">candlestick_chart</span> Box Plot — Tất Cả Layers</div><span class="badge-sm">3,000 px/layer</span></div><div class="card-body"><div id="chart-boxplot"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#38bdf8">show_chart</span> Quantile Profile</div></div><div class="card-body"><div id="chart-quantile"></div></div></div>
+                <!-- NEW -->
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#06b6d4">ssid_chart</span> KDE — Kernel Density</div><div class="card-controls"><span class="ctrl-label">Layer:</span><select id="kde-layer-select" class="ctrl-select"></select></div></div><div class="card-body"><div id="chart-kde"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f43f5e">waterfall_chart</span> CDF — Cumulative Distribution</div><div class="card-controls"><span class="ctrl-label">Layer:</span><select id="cdf-layer-select" class="ctrl-select"></select></div></div><div class="card-body"><div id="chart-cdf"></div></div></div>
+                </div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#e879f9">stacked_line_chart</span> Ridgeline — Multi-Layer KDE</div></div><div class="card-body"><div id="chart-ridgeline"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#fb923c">grain</span> Strip / Swarm Plot</div></div><div class="card-body"><div id="chart-strip"></div></div></div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 7: Tương Quan ═══ -->
+        <div id="page-correlation" class="subpage">
+            <div class="page-hdr"><h2><span class="material-icons" style="color:#fb923c">bubble_chart</span> Tương Quan — 9 Biểu Đồ</h2><p>Pearson, Spearman, Scatter, Hexbin, 2D Density, SPLOM, Bubble, Parallel, Radar</p></div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#ef4444">grid_view</span> Pearson Correlation</div><span class="badge-sm">5k samples</span></div><div class="card-body"><div id="chart-corr-heatmap"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#2dd4bf">grid_view</span> Spearman Rank Correlation</div><span class="badge-sm">5k samples</span></div><div class="card-body"><div id="chart-spearman"></div></div></div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#38bdf8">scatter_plot</span> Scatter XY</div>
+                        <div class="card-controls"><span class="ctrl-label">X:</span><select id="scatter-x" class="ctrl-select"></select><span class="ctrl-label">Y:</span><select id="scatter-y" class="ctrl-select"></select></div>
+                    </div><div class="card-body"><div id="chart-scatter"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#06b6d4">blur_on</span> Bubble — DEM × Rain × Flow</div><span class="badge-sm">800 mẫu</span></div><div class="card-body"><div id="chart-bubble"></div></div></div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#fbbf24">hexagon</span> Hexbin Plot</div><div class="card-controls"><span class="ctrl-label">X:</span><select id="hexbin-x" class="ctrl-select"></select><span class="ctrl-label">Y:</span><select id="hexbin-y" class="ctrl-select"></select></div></div><div class="card-body"><div id="chart-hexbin"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#e879f9">blur_circular</span> 2D Density Contour</div><div class="card-controls"><span class="ctrl-label">X:</span><select id="density2d-x" class="ctrl-select"></select><span class="ctrl-label">Y:</span><select id="density2d-y" class="ctrl-select"></select></div></div><div class="card-body"><div id="chart-density2d"></div></div></div>
+                </div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#818cf8">apps</span> Scatter Matrix (SPLOM)</div><span class="badge-sm">6 layers × 500 pt</span></div><div class="card-body"><div id="chart-splom"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#818cf8">linear_scale</span> Parallel Coordinates</div><span class="badge-sm">800 điểm</span></div><div class="card-body"><div id="chart-parallel"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#c084fc">radar</span> Radar — Flood vs Normal</div></div><div class="card-body"><div id="chart-radar"></div></div></div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 8: Chuỗi Thời Gian ═══ -->
+        <div id="page-timeseries" class="subpage">
+            <div class="page-hdr"><h2><span class="material-icons" style="color:#2dd4bf">timeline</span> Chuỗi Thời Gian — 8 Biểu Đồ</h2><p>Line, Area, Calendar Heatmap, Rolling Average, Seasonal Decomposition, Lag Plot</p></div>
+            <div style="margin-bottom:16px">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#2dd4bf">sync</span> Multi-Date Loader</div>
+                    <div class="card-controls"><span class="ctrl-label">Số ngày:</span><select id="ts-n-dates" class="ctrl-select"><option value="10">10</option><option value="20" selected>20</option><option value="40">40</option></select>
+                        <button id="btn-ts-load" class="btn-sm"><span class="material-icons" style="font-size:15px">download</span> Tải Multi-Date</button><span id="ts-load-status" class="ctrl-label">Chưa tải</span></div>
+                </div><div class="card-body"><div id="ts-progress" style="display:none"><div class="progress-bar-track"><div id="ts-progress-fill" class="progress-bar-fill" style="width:0%"></div></div></div></div></div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#38bdf8">show_chart</span> Time Series Line — Mean per Date</div></div><div class="card-body"><div id="ts-line"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#34d399">area_chart</span> Area Chart — Flood Coverage % Over Time</div></div><div class="card-body"><div id="ts-area"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#fbbf24">stacked_bar_chart</span> Stacked Area — LULC Coverage Over Time</div></div><div class="card-body"><div id="ts-stacked-area"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#ef4444">calendar_month</span> Calendar Heatmap — Rain</div></div><div class="card-body"><div id="ts-calendar"></div></div></div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#a78bfa">stacked_line_chart</span> Multi-Date Comparison</div></div><div class="card-body"><div id="ts-multidate"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#06b6d4">trending_up</span> Rolling Average (7-day)</div></div><div class="card-body"><div id="ts-rolling"></div></div></div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#fb923c">analytics</span> Seasonal Decomposition</div></div><div class="card-body"><div id="ts-seasonal"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#e879f9">sync_alt</span> Lag Plot — Rain[t] vs Rain[t-1]</div></div><div class="card-body"><div id="ts-lag"></div></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 9: Nâng Cao ═══ -->
+        <div id="page-advanced" class="subpage">
+            <div class="page-hdr"><h2><span class="material-icons" style="color:#e879f9">science</span> Nâng Cao — 5 Biểu Đồ Thống Kê</h2><p>Q-Q Plot, PCA Biplot, t-SNE, Dendrogram, Cluster Heatmap</p></div>
+            <div style="display:flex;flex-direction:column;gap:16px">
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#38bdf8">query_stats</span> Q-Q Plot</div><div class="card-controls"><span class="ctrl-label">Layer:</span><select id="qq-layer-select" class="ctrl-select"></select></div></div><div class="card-body"><div id="chart-qq"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#34d399">scatter_plot</span> PCA Biplot (2D)</div><span class="badge-sm">6 numeric layers</span></div><div class="card-body"><div id="chart-pca"></div></div></div>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#e879f9">hub</span> t-SNE Projection</div><span class="badge-sm">800 mẫu</span></div><div class="card-body"><div id="chart-tsne"></div></div></div>
+                    <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f59e0b">account_tree</span> Dendrogram — Layer Clustering</div></div><div class="card-body"><div id="chart-dendrogram"></div></div></div>
+                </div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f43f5e">grid_view</span> Clustered Correlation Heatmap</div></div><div class="card-body"><div id="chart-cluster-heatmap"></div></div></div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 10: Bảng Dữ Liệu ═══ -->
+        <div id="page-tables" class="subpage">
+            <div class="page-hdr"><h2><span class="material-icons" style="color:#94a3b8">table_chart</span> Bảng Thống Kê Chi Tiết</h2><p>Summary · Percentiles · Correlation · Categorical · Cross-Tab · Anomalies — Export CSV/Excel</p></div>
+            <div class="card">
+                <div class="table-tabs" id="eda-table-tabs">
+                    <div class="table-tab active" data-target="ttab-summary">Summary</div>
+                    <div class="table-tab" data-target="ttab-percentiles">Percentiles</div>
+                    <div class="table-tab" data-target="ttab-correlation">Correlation</div>
+                    <div class="table-tab" data-target="ttab-categorical">Categorical</div>
+                    <div class="table-tab" data-target="ttab-crosstab">Cross-Tab</div>
+                    <div class="table-tab" data-target="ttab-anomalies">Anomalies</div>
+                </div>
+                <div id="ttab-summary" class="ttab-content active" style="padding:16px"><table id="table-summary" class="display" style="width:100%;font-size:12px"><thead><tr><th>Layer</th><th>Min</th><th>Max</th><th>Mean</th><th>Median</th><th>Std Dev</th><th>Valid Px</th><th>Missing</th></tr></thead><tbody></tbody></table></div>
+                <div id="ttab-percentiles" class="ttab-content" style="padding:16px"><table id="table-percentiles" class="display" style="width:100%;font-size:12px"><thead><tr><th>Layer</th><th>Min</th><th>Q1</th><th>Median</th><th>Q3</th><th>P90</th><th>P95</th><th>P99</th><th>Max</th></tr></thead><tbody></tbody></table></div>
+                <div id="ttab-correlation" class="ttab-content" style="padding:16px"><table id="table-correlation" class="display" style="width:100%;font-size:12px"><thead id="thead-corr"><tr><th>Layer</th></tr></thead><tbody id="tbody-corr"></tbody></table></div>
+                <div id="ttab-categorical" class="ttab-content" style="padding:16px">
+                    <div class="grid-2" style="gap:20px">
+                        <div><h3 style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text)">🌿 LULC Distribution</h3><table id="table-cat-lulc" class="display" style="width:100%;font-size:12px"><thead><tr><th>Class</th><th>Pixels</th><th>%</th></tr></thead><tbody></tbody></table></div>
+                        <div><h3 style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text)">🌊 Flood Label</h3><table id="table-cat-flood" class="display" style="width:100%;font-size:12px"><thead><tr><th>Label</th><th>Pixels</th><th>%</th></tr></thead><tbody></tbody></table></div>
+                    </div>
+                </div>
+                <div id="ttab-crosstab" class="ttab-content" style="padding:16px">
+                    <h3 style="font-size:13px;font-weight:700;margin-bottom:10px;color:var(--text)">LULC × Flood Cross-Tabulation</h3>
+                    <table id="table-crosstab" class="display" style="width:100%;font-size:12px"><thead><tr><th>LULC Class</th><th>Non-Flood Pixels</th><th>Flood Pixels</th><th>Flood %</th><th>Total</th></tr></thead><tbody></tbody></table>
+                </div>
+                <div id="ttab-anomalies" class="ttab-content" style="padding:16px"><table id="table-anomalies" class="display" style="width:100%;font-size:12px"><thead><tr><th>Row,Col</th><th>Lat</th><th>Lng</th><th>Rain</th><th>DEM</th><th>Tide</th><th>Flow</th><th>Flood</th></tr></thead><tbody></tbody></table></div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px"></div>
+
+<script src="/js/eda/eda-app.js?v=4"></script>
+<script src="/js/eda/eda-spatial.js?v=4"></script>
+<script src="/js/eda/eda-meteo.js?v=4"></script>
+<script src="/js/eda/eda-terrain.js?v=4"></script>
+<script src="/js/eda/eda-landcover.js?v=4"></script>
+<script src="/js/eda/eda-flood.js?v=4"></script>
+<script src="/js/eda/eda-distribution.js?v=4"></script>
+<script src="/js/eda/eda-correlation.js?v=4"></script>
+<script src="/js/eda/eda-timeseries.js?v=4"></script>
+<script src="/js/eda/eda-advanced.js?v=4"></script>
+<script src="/js/eda/eda-datatable.js?v=4"></script>
+</body>
+</html>
