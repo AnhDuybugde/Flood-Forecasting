@@ -343,6 +343,9 @@ async function fetchTimelineData() {
 
     // Focus = last item (most recent date)
     state.focusIndex = state.timelineData.length - 1;
+
+    // Trigger EDA charts render if available
+    document.dispatchEvent(new CustomEvent('pixelHistoryLoaded', { detail: state.timelineData }));
 }
 
 async function fetchRegionStats() {

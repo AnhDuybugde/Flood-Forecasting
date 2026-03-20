@@ -651,6 +651,45 @@
             </div>
         </section>
 
+        <!-- ── ROW 5: ADVANCED COMPREHENSIVE EDA ── -->
+        <section class="bg-white rounded-xl border border-slate-200 shadow-gov overflow-hidden">
+            <div class="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-sm font-bold text-slate-800 uppercase tracking-wider flex items-center gap-2">
+                        <span class="material-symbols-outlined text-gov-500 text-lg">donut_large</span>
+                        Advanced Pixel EDA & Correlations
+                    </h3>
+                    <p class="text-[11px] text-slate-500 mt-0.5">Deep statistical analysis mapping inter-feature relations across recorded history.</p>
+                </div>
+            </div>
+            
+            <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Feature Distribution -->
+                <div class="border border-slate-100 rounded-lg p-4 shadow-sm">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase mb-3 text-center tracking-wider">Environmental Value Distributions</h4>
+                    <div class="relative w-full h-64"><canvas id="chart-eda-dist"></canvas></div>
+                </div>
+                
+                <!-- Radar Chart -->
+                <div class="border border-slate-100 rounded-lg p-4 shadow-sm">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase mb-3 text-center tracking-wider">Normalized Multivariate Risk Profile</h4>
+                    <div class="relative w-full h-64"><canvas id="chart-eda-radar"></canvas></div>
+                </div>
+                
+                <!-- Correlation Scatter -->
+                <div class="border border-slate-100 rounded-lg p-4 shadow-sm">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase mb-3 text-center tracking-wider">Rainfall vs Flood Probability Correlation</h4>
+                    <div class="relative w-full h-64"><canvas id="chart-eda-scatter"></canvas></div>
+                </div>
+
+                <!-- Feature Importance pseudo-chart -->
+                <div class="border border-slate-100 rounded-lg p-4 shadow-sm">
+                    <h4 class="text-xs font-bold text-slate-700 uppercase mb-3 text-center tracking-wider">Estimated Feature Influence on Risk</h4>
+                    <div class="relative w-full h-64"><canvas id="chart-eda-importance"></canvas></div>
+                </div>
+            </div>
+        </section>
+
     </main>
 
     <!-- ═══════════════════════════════════════════════════════════
@@ -667,6 +706,7 @@
          DASHBOARD CONTROLLER SCRIPT
          ═══════════════════════════════════════════════════════════ -->
     <script src="js/dashboard/dashboard.js" defer></script>
+    <script src="js/dashboard/pixel-eda.js" defer></script>
 </body>
 
 </html>
