@@ -1,0 +1,76 @@
+# 🌊 Da Nang Flood AI Prediction System (DAP391m)
+
+[![Python](https://img.shields.io/badge/Python-3.9+-blue.svg)](https://www.python.org/)
+[![Framework](https://img.shields.io/badge/Framework-Streamlit-FF4B4B.svg)](https://streamlit.io/)
+[![Orchestration](https://img.shields.io/badge/Workflow-Airflow-017CEE.svg)](https://airflow.apache.org/)
+[![Docker](https://img.shields.io/badge/Docker-Container-2496ED.svg)](https://www.docker.com/)
+
+Hệ thống tích hợp thu thập dữ liệu tự động (**Airflow**), phân tích dữ liệu (**EDA**) và dự báo ngập lụt khu vực Đà Nẵng bằng mô hình Deep Learning (**FloodSOTA-V2**).
+
+---
+
+## 📂 Dữ liệu & Mô hình (Data & Model)
+
+Do kích thước tệp lớn, dữ liệu và trọng số mô hình được lưu trữ riêng. Vui lòng thiết lập theo hướng dẫn sau:
+
+> 📌 **[Tải dữ liệu và Model tại đây](https://drive.google.com/drive/folders/1BrEy_5SQVTIG97ofJbNlTW4fuC2SkgDv?usp=drive_link)**
+
+| Thành phần | Định dạng | Vị trí lưu trữ |
+| :--- | :--- | :--- |
+| **Dữ liệu huấn luyện** | `.npz` | Thư mục `Data/` (Thư mục gốc) |
+| **Trọng số Model** | `.pth` | Thư mục gốc project |
+
+---
+
+## 🏗️ Cấu trúc dự án (Project Structure)
+
+```text
+.
+├── airflow/                # Quản lý DAGs và Scripts thu thập dữ liệu
+├── Dashboard/              # Source code Streamlit & định nghĩa Model
+├── Data/                   # Chứa file .npz (Đã được Git ignore)
+├── best_flood_model_v2.pth # File trọng số model (Đã được Git ignore)
+├── .gitignore              # Cấu hình loại trừ file nặng & môi trường ảo
+├── requirements.txt        # Danh sách thư viện Python
+└── docker-compose.yml      # Cấu hình triển khai Airflow qua Docker
+```
+
+---
+
+## 🛠️ Hướng dẫn Khởi chạy (Setup & Execution)
+
+### 1. Local Dashboard (Streamlit)
+Phục vụ việc quan trắc và hiển thị dự báo trực quan:
+
+#### Kích hoạt môi trường ảo
+```bash
+.\venv\Scripts\activate
+```
+
+#### Cài đặt thư viện (nếu chưa có)
+```bash
+pip install -r requirements.txt
+```
+
+#### Chạy Dashboard
+```bash
+cd Dashboard
+streamlit run app.py
+```
+
+---
+
+### 2. Hệ thống Airflow (Docker)
+Vận hành Pipeline thu thập dữ liệu tự động:
+
+#### Dừng và xóa các tài nguyên cũ (Volume, Container)
+```bash
+docker compose down -v 
+```
+
+#### Xây dựng và khởi chạy hệ thống ở chế độ chạy ngầm
+```bash
+docker compose up -d --build
+```
+
+🌐 Airflow UI: http://localhost:8080

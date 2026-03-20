@@ -1,0 +1,37 @@
+# 1. DỮ LIỆU (Ignore toàn bộ data nặng)
+Data/
+airflow/Data/
+airflow/data_original/
+airflow/data_processed/
+
+# Ignore các file .npz lẻ tẻ nếu có lọt ra ngoài
+*.npz
+*.tif
+*.csv
+
+# 2. MODEL AI (Tránh đẩy file .pth nặng lên Git)
+*.pth
+*.h5
+*.pkl
+
+# 3. THÔNG TIN BẢO MẬT & CẤU HÌNH
+.env
+airflow/.env
+airflow/config/gee-key.json
+**/*.json
+# (Lưu ý: Nếu bạn có file json quan trọng không phải key thì hãy cân nhắc dòng trên)
+
+# 4. MÔI TRƯỜNG ẢO & RÁC HỆ THỐNG
+venv/
+.venv/
+env/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.streamlit/
+airflow/logs/
+
+# Rác hệ điều hành
+.DS_Store
+desktop.ini
+Thumbs.db
