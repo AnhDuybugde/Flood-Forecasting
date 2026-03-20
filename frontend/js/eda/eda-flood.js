@@ -13,7 +13,7 @@ function renderFloodPage() {
         const ds = 5, rows = lblG.size.r, cols = lblG.size.c;
         const dr = Math.ceil(rows/ds), dc = Math.ceil(cols/ds), z = [], b = lblG.bounds;
         for (let r = 0; r < dr; r++) { const row = []; for (let c = 0; c < dc; c++) { const v = gridVal(lblG, Math.min(r*ds,rows-1)*cols+Math.min(c*ds,cols-1)); row.push(v!==null&&v>0?1:0); } z.push(row); }
-        Plotly.newPlot('flood-heatmap', [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.s, dy:(b.n-b.s)/dr, colorscale:[[0,'#1e3a5f'],[0.5,'#fbbf24'],[1,'#dc2626']], zsmooth:false, colorbar:{tickvals:[0,1],ticktext:['No','Yes'],thickness:12,tickfont:{color:'#94a3b8'}} }], darkLayout('Flood Binary Map', { height:380 }), PLOTLY_CFG);
+        Plotly.newPlot('flood-heatmap', [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.n, dy:-(b.n-b.s)/dr, colorscale:[[0,'#1e3a5f'],[0.5,'#fbbf24'],[1,'#dc2626']], zsmooth:false, colorbar:{tickvals:[0,1],ticktext:['No','Yes'],thickness:12,tickfont:{color:'#94a3b8'}} }], darkLayout('Flood Binary Map', { height:380 }), PLOTLY_CFG);
     }
 
     // Pie
@@ -145,4 +145,94 @@ function renderFloodPage() {
     }
 }
 
-document.addEventListener('edaDataReady', renderFloodPage);
+// ── Flood Threshold Explorer ──
+function initThresholdExplorer() {
+    const slider = document.getElementById('flood-threshold-slider');
+    const valLabel = document.getElementById('thresh-val-label');
+    const pctLabel = document.getElementById('thresh-flood-pct');
+    const lblG = window.EDA.gridData?.label;
+    if (!slider || !lblG) return;
+
+    // Pre-compute sorted values for fast threshold evaluation
+    const nd = lblG.nodata ?? -9999, sc = lblG.scale || 1;
+    const allVals = [];
+    for (let i = 0; i < lblG.data.length; i++) {
+        const raw = lblG.data[i];
+        if (raw === nd || raw <= -9998 || raw == null) continue;
+        allVals.push(raw / sc);
+    }
+    const maxVal = allVals.reduce((a, b) => Math.max(a, b), 0.001);
+    const total = allVals.length;
+
+    function updateThreshold() {
+        const pct = parseInt(slider.value);
+        const threshold = (pct / 100) * maxVal;
+        valLabel.textContent = threshold.toFixed(3);
+
+        // Count flood pixels at this threshold
+        const ds = 5, rows = lblG.size.r, cols = lblG.size.c;
+        const dr = Math.ceil(rows / ds), dc = Math.ceil(cols / ds);
+        const b = lblG.bounds;
+        const z = [];
+        let flood = 0, normal = 0;
+
+        for (let r = 0; r < dr; r++) {
+            const row = [];
+            for (let c = 0; c < dc; c++) {
+                const idx = Math.min(r * ds, rows - 1) * cols + Math.min(c * ds, cols - 1);
+                const v = gridVal(lblG, idx);
+                if (v === null) { row.push(null); continue; }
+                const isFlood = v > threshold;
+                row.push(isFlood ? 1 : 0);
+                isFlood ? flood++ : normal++;
+            }
+            z.push(row);
+        }
+
+        const floodPct = ((flood / (flood + normal)) * 100).toFixed(2);
+        pctLabel.innerHTML = `<span style="color:#f87171;font-weight:700">${floodPct}%</span> ngập`;
+
+        // Update map
+        Plotly.react('thresh-map', [{
+            z, type: 'heatmap',
+            x0: b.w, dx: (b.e - b.w) / dc,
+            y0:b.n, dy:-(b.n-b.s) / dr,
+            colorscale: [[0, '#1e3a5f'], [0.5, '#fbbf24'], [1, '#dc2626']],
+            zsmooth: false,
+            colorbar: { tickvals: [0, 1], ticktext: ['Normal', 'Flood'], thickness: 12, tickfont: { color: '#94a3b8' } },
+            hovertemplate: 'Lat:%{y:.3f}<br>Lng:%{x:.3f}<br>%{z}<extra></extra>'
+        }], darkLayout(`Flood Map @ threshold = ${threshold.toFixed(3)}`, {
+            height: 380,
+            xaxis: { title: { text: 'Lng', font: { size: 10 } } },
+            yaxis: { title: { text: 'Lat', font: { size: 10 } }, scaleanchor: 'x' }
+        }), PLOTLY_CFG);
+
+        // Update stats donut
+        Plotly.react('thresh-stats', [{
+            values: [flood, normal],
+            labels: [`Ngập (${floodPct}%)`, `Bình thường (${(100 - parseFloat(floodPct)).toFixed(2)}%)`],
+            type: 'pie', hole: 0.55,
+            marker: { colors: ['#ef4444', '#3b82f6'], line: { color: 'rgba(15,23,42,0.8)', width: 2 } },
+            textinfo: 'label+percent',
+            textfont: { color: '#e2e8f0', size: 11 },
+            textposition: 'outside'
+        }], darkLayout(`${flood.toLocaleString()} flood / ${(flood + normal).toLocaleString()} total`, {
+            height: 380,
+            showlegend: false,
+            annotations: [{
+                text: `<b>${floodPct}%</b>`,
+                showarrow: false,
+                font: { size: 28, color: '#f87171', family: 'Inter' },
+                x: 0.5, y: 0.5
+            }]
+        }), PLOTLY_CFG);
+    }
+
+    slider.addEventListener('input', updateThreshold);
+    updateThreshold(); // Initial render
+}
+
+document.addEventListener('edaDataReady', () => {
+    renderFloodPage();
+    initThresholdExplorer();
+});

@@ -7,9 +7,12 @@ import { Ok, Err, AppErrors } from '../../shared/types/result';
 import * as metadataService from '../metadata/metadata.service';
 import * as gridService from '../grid/grid.service';
 import { structuredLog } from '../../shared/middleware/tracing';
-import { getLocalRainfallTotal } from '../../shared/legacy/npz-reader';
+import { getLocalRainfallTotal, getLocalTideTotal } from '../../shared/legacy/npz-reader';
+import { MemoryCache } from '../../shared/cache/memory-cache';
 
 import { Region } from '../../shared/types/common';
+
+const seasonalityCache = new MemoryCache<any>(10, 60 * 60 * 1000); // 1h
 
 export async function getRainfallTrend(region: string, targetDate: string): Promise<Result<{ date: string; total: number }[], AppError>> {
     const t0 = Date.now();
@@ -82,3 +85,79 @@ export async function getRainfallTrend(region: string, targetDate: string): Prom
 
     return Ok(results);
 }
+
+export async function getSeasonalityTrend(region: string): Promise<Result<{ date: string; year: number; dayOfYear: number; rain: number; tide: number }[], AppError>> {
+    const t0 = Date.now();
+    const cacheKey = `seasonality_${region}`;
+    const cached = seasonalityCache.get(cacheKey);
+    if (cached) return Ok(cached);
+
+    const timelineResult = await metadataService.getDates(region);
+    if (!timelineResult.ok) return Err(timelineResult.error);
+
+    const availableDates: string[] = [];
+    const nested = timelineResult.value.availableDates;
+    for (const year of Object.keys(nested).sort()) {
+        const months = nested[year];
+        if (!months) continue;
+        for (const month of Object.keys(months).sort()) {
+            const days = months[month]?.sort((a: number, b: number) => a - b) || [];
+            for (const day of days) {
+                availableDates.push(`${year}-${month.padStart(2, '0')}-${String(day).padStart(2, '0')}`);
+            }
+        }
+    }
+
+    const results: { date: string; year: number; dayOfYear: number; rain: number; tide: number }[] = [];
+    const chunkSize = 20;
+
+    for (let i = 0; i < availableDates.length; i += chunkSize) {
+        const chunk = availableDates.slice(i, i + chunkSize);
+        const fetchPromises = chunk.map(async (dateStr) => {
+            const dateObj = new Date(dateStr);
+            const startOfYear = new Date(dateObj.getFullYear(), 0, 0);
+            const diff = dateObj.getTime() - startOfYear.getTime() + (startOfYear.getTimezoneOffset() - dateObj.getTimezoneOffset()) * 60 * 1000;
+            const dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+
+            let localTotal = await getLocalRainfallTotal(dateStr, region);
+            let localTideTotal = await getLocalTideTotal(dateStr, region);
+
+            if (localTotal === null) {
+                const gridResult = await gridService.getGrid({ region: region as 'DaNang', date: dateStr, layer: 'rain' });
+                if (gridResult.ok && gridResult.value && gridResult.value.data) {
+                    const dataArr = gridResult.value.data;
+                    const scale = gridResult.value.scale ?? 1;
+                    let sum = 0, count = 0;
+                    for (let j = 0; j < dataArr.length; j++) {
+                        const val = dataArr[j];
+                        if (val !== undefined && val >= 0) { sum += val * scale; count++; }
+                    }
+                    localTotal = count > 0 ? parseFloat((sum / count).toFixed(2)) : 0;
+                }
+            }
+
+            if (localTideTotal === null) {
+                const gridResult = await gridService.getGrid({ region: region as 'DaNang', date: dateStr, layer: 'tide' });
+                if (gridResult.ok && gridResult.value && gridResult.value.data) {
+                    const dataArr = gridResult.value.data;
+                    const scale = gridResult.value.scale ?? 1;
+                    let sum = 0, count = 0;
+                    for (let j = 0; j < dataArr.length; j++) {
+                        const val = dataArr[j];
+                        if (val !== undefined && val !== null) { sum += val * scale; count++; }
+                    }
+                    localTideTotal = count > 0 ? parseFloat((sum / count).toFixed(2)) : 0;
+                }
+            }
+
+            return { date: dateStr, year: dateObj.getFullYear(), dayOfYear, rain: localTotal ?? 0, tide: localTideTotal ?? 0 };
+        });
+        results.push(...await Promise.all(fetchPromises));
+    }
+
+    results.sort((a, b) => a.date.localeCompare(b.date));
+    seasonalityCache.set(cacheKey, results);
+    structuredLog('info', 'forecast_seasonality_trend', { region, days: results.length, durationMs: Date.now() - t0 });
+    return Ok(results);
+}
+

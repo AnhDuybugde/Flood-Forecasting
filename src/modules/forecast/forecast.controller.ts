@@ -76,4 +76,23 @@ router.get('/:region/rainfall-trend', async (req, res) => {
     return ok(res, result.value);
 });
 
+// GET /api/forecast/:region/seasonality
+router.get('/:region/seasonality', async (req, res) => {
+    const paramsParsed = TrendParamsSchema.safeParse(req.params);
+    if (!paramsParsed.success) {
+        return fail(res, 'Invalid region', 400, 'VALIDATION');
+    }
+
+    const { region } = paramsParsed.data;
+    const result = await forecastService.getSeasonalityTrend(region);
+
+    if (!result.ok) {
+        return fail(res, result.error.message, result.error.statusCode, result.error.code);
+    }
+
+    res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=600');
+    return ok(res, result.value);
+});
+
 export { router as forecastRouter };
+

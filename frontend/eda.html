@@ -214,6 +214,12 @@
         <div class="nav-item" data-page="timeseries"><span class="material-icons" style="color:#2dd4bf">timeline</span> Chuỗi Thời Gian<span class="nav-badge">8</span></div>
         <div class="nav-item" data-page="advanced"><span class="material-icons" style="color:#e879f9">science</span> Nâng Cao<span class="nav-badge">5</span></div>
         <div class="nav-item" data-page="tables"><span class="material-icons" style="color:#94a3b8">table_chart</span> Bảng Dữ Liệu</div>
+
+        <div class="nav-section-label">Công Cụ Mới</div>
+        <div class="nav-item" data-page="health"><span class="material-icons" style="color:#10b981">health_and_safety</span> Health Monitor<span class="nav-badge" style="background:rgba(16,185,129,0.3);color:#34d399">NEW</span></div>
+        <div class="nav-item" data-page="roi"><span class="material-icons" style="color:#8b5cf6">crop_free</span> ROI Selection<span class="nav-badge" style="background:rgba(139,92,246,0.3);color:#a78bfa">NEW</span></div>
+        <div class="nav-item" data-page="multisample"><span class="material-icons" style="color:#f97316">compare_arrows</span> Multi-Sample<span class="nav-badge" style="background:rgba(249,115,22,0.3);color:#fb923c">NEW</span></div>
+        <div class="nav-item" data-page="seasonality"><span class="material-icons" style="color:#0ea5e9">water_drop</span> Rain Seasonality<span class="nav-badge" style="background:rgba(14,165,233,0.3);color:#38bdf8">NEW</span></div>
     </nav>
     <div class="sidebar-footer">
         <a href="/index.html"><span class="material-icons" style="font-size:14px;vertical-align:middle">arrow_back</span> Dashboard</a>
@@ -347,6 +353,23 @@
                     <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f59e0b">equalizer</span> Conditional Distribution</div><span class="badge-sm">Rain | Flood vs Rain | Normal</span></div><div class="card-body"><div id="flood-cond-dist"></div></div></div>
                     <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#e879f9">grid_on</span> Decision Boundary</div><span class="badge-sm">Rain × DEM → Flood</span></div><div class="card-body"><div id="flood-decision"></div></div></div>
                 </div>
+                <!-- Flood Threshold Explorer -->
+                <div class="card mt-16">
+                    <div class="card-hdr">
+                        <div class="card-title"><span class="material-icons" style="color:#f97316">tune</span> Flood Threshold Explorer <span class="badge-sm" style="background:rgba(249,115,22,0.3);color:#fb923c">NEW</span></div>
+                        <div class="card-controls">
+                            <span class="ctrl-label">Threshold: <span id="thresh-val-label" style="color:#f97316;font-weight:700">0.00</span></span>
+                            <input type="range" id="flood-threshold-slider" class="ctrl-range" min="0" max="100" value="0" step="1" style="width:200px">
+                            <span class="ctrl-label" id="thresh-flood-pct">--</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="grid-2">
+                            <div id="thresh-map"></div>
+                            <div id="thresh-stats"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -472,21 +495,111 @@
             </div>
         </div>
 
+        <!-- ═══ PAGE 11: Health Monitor ═══ -->
+        <div id="page-health" class="subpage">
+            <div class="page-hdr">
+                <h2><span class="material-icons" style="color:#10b981">health_and_safety</span> Channel Health Monitor</h2>
+                <p>Tự động phát hiện kênh trống, tỷ lệ zero, NaN, outlier — Đánh giá chất lượng dữ liệu</p>
+            </div>
+            <div id="health-cards"></div>
+            <div class="mt-16">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#6366f1">radar</span> Data Quality Radar</div></div><div class="card-body"><div id="health-radar"></div></div></div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 12: ROI Selection ═══ -->
+        <div id="page-roi" class="subpage">
+            <div class="page-hdr">
+                <h2><span class="material-icons" style="color:#8b5cf6">crop_free</span> ROI Selection — Phân Tích Vùng</h2>
+                <p>Chọn vùng trên bản đồ hoặc dùng preset để phân tích chi tiết một khu vực</p>
+            </div>
+            <div style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap">
+                <button id="btn-roi-low" class="btn-sm"><span class="material-icons" style="font-size:15px;color:#34d399">landscape</span> Vùng Thấp (DEM&lt;10m)</button>
+                <button id="btn-roi-river" class="btn-sm"><span class="material-icons" style="font-size:15px;color:#38bdf8">waves</span> Ven Sông (Top 5% Flow)</button>
+                <button id="btn-roi-flood" class="btn-sm"><span class="material-icons" style="font-size:15px;color:#ef4444">flood</span> Vùng Ngập</button>
+                <button id="btn-roi-reset" class="btn-sm"><span class="material-icons" style="font-size:15px">restart_alt</span> Xóa ROI</button>
+            </div>
+            <div class="grid-2">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#34d399">map</span> DEM Base Map — Drag to Select</div></div><div class="card-body"><div id="roi-map"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#818cf8">analytics</span> ROI Statistics</div></div><div class="card-body" id="roi-stats-panel"><div style="text-align:center;padding:40px;color:var(--text-muted)"><span class="material-icons" style="font-size:48px;opacity:0.3">touch_app</span><p style="margin-top:10px">Chọn vùng trên bản đồ hoặc dùng Preset</p></div></div></div>
+            </div>
+            <div class="mt-16 grid-2">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#f59e0b">bar_chart</span> ROI vs Global</div></div><div class="card-body"><div id="roi-compare"></div></div></div>
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#a78bfa">equalizer</span> Distribution trong ROI</div></div><div class="card-body"><div id="roi-distribution"></div></div></div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 13: Multi-Sample Compare ═══ -->
+        <div id="page-multisample" class="subpage">
+            <div class="page-hdr">
+                <h2><span class="material-icons" style="color:#f97316">compare_arrows</span> Multi-Sample Compare</h2>
+                <p>So sánh dữ liệu giữa 2 ngày — Difference Map, Channel-by-Channel, Statistics</p>
+            </div>
+            <div class="card" style="margin-bottom:16px">
+                <div class="card-hdr">
+                    <div class="card-title"><span class="material-icons" style="color:#f97316">date_range</span> Chọn Ngày Để So Sánh</div>
+                    <div class="card-controls">
+                        <span class="ctrl-label">Ngày A:</span>
+                        <select id="ms-date-a" class="ctrl-select"><option>Loading...</option></select>
+                        <span class="ctrl-label">Ngày B:</span>
+                        <select id="ms-date-b" class="ctrl-select"><option>Loading...</option></select>
+                        <button id="btn-ms-compare" class="btn-sm" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none"><span class="material-icons" style="font-size:15px">compare</span> So Sánh</button>
+                    </div>
+                </div>
+                <div id="ms-progress" style="display:none;padding:8px 16px">
+                    <div class="progress-bar-track"><div id="ms-progress-fill" class="progress-bar-fill" style="width:0%"></div></div>
+                </div>
+            </div>
+            <div id="ms-diff-maps" style="display:flex;flex-direction:column;gap:16px"></div>
+            <div class="mt-16">
+                <div class="card"><div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#818cf8">leaderboard</span> Change Statistics</div></div><div class="card-body"><div id="ms-stats-chart"></div></div></div>
+            </div>
+        </div>
+
+        <!-- ═══ PAGE 14: Rain Seasonality ═══ -->
+        <div id="page-seasonality" class="subpage">
+            <div class="page-hdr">
+                <h2><span class="material-icons" style="color:#0ea5e9">water_drop</span> Rain Seasonality</h2>
+                <p>Xu hướng lượng mưa theo mùa qua các năm — Phân tích chuỗi thời gian trung bình (mm/ngày)</p>
+            </div>
+            <div class="card" style="margin-bottom:16px">
+                <div class="card-hdr">
+                    <div class="card-title"><span class="material-icons" style="color:#0ea5e9">cloud_download</span> Dữ Liệu Thời Tiết</div>
+                    <div class="card-controls">
+                        <button id="btn-ssn-load" class="btn-sm" style="background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;border:none"><span class="material-icons" style="font-size:15px">download</span> Tải Dữ Liệu Các Năm</button>
+                        <span id="ssn-status" class="ctrl-label">Chưa tải</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card mt-16">
+                <div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#38bdf8">insights</span> Rain Seasonality (mm) By Year</div></div>
+                <div class="card-body"><div id="ssn-line-chart"></div></div>
+            </div>
+            <div class="card mt-16">
+                <div class="card-hdr"><div class="card-title"><span class="material-icons" style="color:#06b6d4">show_chart</span> Tide Seasonality (m) By Year</div></div>
+                <div class="card-body"><div id="tide-ssn-line-chart"></div></div>
+            </div>
+        </div>
+
     </div>
 </div>
 
 <div id="toast-container" style="position:fixed;bottom:24px;right:24px;z-index:9999;display:flex;flex-direction:column;gap:8px"></div>
 
-<script src="/js/eda/eda-app.js?v=4"></script>
-<script src="/js/eda/eda-spatial.js?v=4"></script>
-<script src="/js/eda/eda-meteo.js?v=4"></script>
-<script src="/js/eda/eda-terrain.js?v=4"></script>
-<script src="/js/eda/eda-landcover.js?v=4"></script>
-<script src="/js/eda/eda-flood.js?v=4"></script>
-<script src="/js/eda/eda-distribution.js?v=4"></script>
-<script src="/js/eda/eda-correlation.js?v=4"></script>
-<script src="/js/eda/eda-timeseries.js?v=4"></script>
-<script src="/js/eda/eda-advanced.js?v=4"></script>
-<script src="/js/eda/eda-datatable.js?v=4"></script>
+<script src="/js/eda/eda-app.js?v=5"></script>
+<script src="/js/eda/eda-spatial.js?v=5"></script>
+<script src="/js/eda/eda-meteo.js?v=5"></script>
+<script src="/js/eda/eda-terrain.js?v=5"></script>
+<script src="/js/eda/eda-landcover.js?v=5"></script>
+<script src="/js/eda/eda-flood.js?v=5"></script>
+<script src="/js/eda/eda-distribution.js?v=5"></script>
+<script src="/js/eda/eda-correlation.js?v=5"></script>
+<script src="/js/eda/eda-timeseries.js?v=5"></script>
+<script src="/js/eda/eda-advanced.js?v=5"></script>
+<script src="/js/eda/eda-datatable.js?v=5"></script>
+<script src="/js/eda/eda-health.js?v=5"></script>
+<script src="/js/eda/eda-roi.js?v=5"></script>
+<script src="/js/eda/eda-multisample.js?v=5"></script>
+<script src="/js/eda/eda-seasonality.js?v=5"></script>
 </body>
 </html>

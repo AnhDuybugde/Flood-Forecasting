@@ -115,7 +115,7 @@ function renderDataTables() {
         for (let i = 0; i < G.rain.data.length && data.length < 100; i += Math.max(1, Math.floor(G.rain.data.length / 50000))) {
             const rv = gridVal(G.rain, i); if (rv === null || rv < p95) continue;
             const r = Math.floor(i / cols), c = i % cols;
-            const lat = (b.s + (r / rows) * (b.n - b.s)).toFixed(4);
+            const lat = (b.n - (r / rows) * (b.n - b.s)).toFixed(4);
             const lng = (b.w + (c / cols) * (b.e - b.w)).toFixed(4);
             data.push([`${r},${c}`, lat, lng, rv.toFixed(3), G.dem ? (gridVal(G.dem, i) != null ? String(gridVal(G.dem, i)) : 'nodata') : 'nodata', G.tide ? (gridVal(G.tide, i) != null ? String(gridVal(G.tide, i)) : 'nodata') : 'nodata', G.flow ? (gridVal(G.flow, i) != null ? String(gridVal(G.flow, i)) : 'nodata') : 'nodata', G.label ? (gridVal(G.label, i) > 0 ? '🌊 Flood' : '✅') : 'nodata']);
         }

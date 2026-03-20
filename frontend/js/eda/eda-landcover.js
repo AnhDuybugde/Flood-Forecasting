@@ -27,7 +27,7 @@ function renderLandCoverPage() {
     const dr = Math.ceil(rows/ds), dc = Math.ceil(cols/ds), z = [];
     for (let r = 0; r < dr; r++) { const row = []; for (let c = 0; c < dc; c++) row.push(gridVal(lcG, Math.min(r*ds,rows-1)*cols+Math.min(c*ds,cols-1))); z.push(row); }
     const b = lcG.bounds;
-    Plotly.newPlot('lc-heatmap', [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.s, dy:(b.n-b.s)/dr, colorscale:'Portland', zsmooth:false, colorbar:{title:{text:'Class',font:{size:10,color:'#94a3b8'}},thickness:12,tickfont:{color:'#94a3b8'}} }], darkLayout('LULC Map', { height:380 }), PLOTLY_CFG);
+    Plotly.newPlot('lc-heatmap', [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.n, dy:-(b.n-b.s)/dr, colorscale:'Portland', zsmooth:false, colorbar:{title:{text:'Class',font:{size:10,color:'#94a3b8'}},thickness:12,tickfont:{color:'#94a3b8'}} }], darkLayout('LULC Map', { height:380 }), PLOTLY_CFG);
 
     // Pie
     Plotly.newPlot('lc-pie', [{ values:vals, labels, type:'pie', hole:0.4, marker:{colors:pieColors,line:{color:'rgba(15,23,42,0.8)',width:2}}, textinfo:'label+percent', textfont:{color:'#e2e8f0',size:10} }], darkLayout('LULC Distribution', { height:380, showlegend:false, margin:{l:20,r:20,t:44,b:20} }), PLOTLY_CFG);

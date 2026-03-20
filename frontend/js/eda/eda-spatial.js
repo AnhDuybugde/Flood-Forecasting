@@ -17,7 +17,7 @@ function buildSpatialHeatmap(layerId, containerId) {
     }
     const b = grid.bounds, info = window.LAYERS.find(l => l.id === layerId);
     const cs = { rain:'Blues', soilMoisture:'YlOrBr', tide:'Teal', dem:'Earth', slope:'Hot', flow:'Purples', landCover:'Portland', label:[[0,'#1e40af'],[0.5,'#fbbf24'],[1,'#dc2626']] };
-    Plotly.newPlot(containerId, [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.s, dy:(b.n-b.s)/dr, colorscale:cs[layerId]||'Viridis', colorbar:{title:{text:info?.unit||'',font:{size:10,color:'#94a3b8'}},thickness:12,tickfont:{color:'#94a3b8',size:9}}, hovertemplate:`Lat:%{y:.3f}<br>Lng:%{x:.3f}<br>Value:%{z:.4f}<extra>${info?.label||layerId}</extra>`, zsmooth:'best' }], darkLayout(`${info?.label||layerId} — ${info?.unit||''}`, { height:400, xaxis:{title:{text:'Longitude',font:{size:10}}}, yaxis:{title:{text:'Latitude',font:{size:10}},scaleanchor:'x'} }), PLOTLY_CFG);
+    Plotly.newPlot(containerId, [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.n, dy:-(b.n-b.s)/dr, colorscale:cs[layerId]||'Viridis', colorbar:{title:{text:info?.unit||'',font:{size:10,color:'#94a3b8'}},thickness:12,tickfont:{color:'#94a3b8',size:9}}, hovertemplate:`Lat:%{y:.3f}<br>Lng:%{x:.3f}<br>Value:%{z:.4f}<extra>${info?.label||layerId}</extra>`, zsmooth:'best' }], darkLayout(`${info?.label||layerId} — ${info?.unit||''}`, { height:400, xaxis:{title:{text:'Longitude',font:{size:10}}}, yaxis:{title:{text:'Latitude',font:{size:10}},scaleanchor:'x'} }), PLOTLY_CFG);
 }
 
 function dsGrid(grid, ds) {
@@ -28,16 +28,23 @@ function dsGrid(grid, ds) {
     return { z, dr, dc };
 }
 
-function renderSpatialPage() {
+// Helper to yield event loop
+const yieldToMain = () => new Promise(r => setTimeout(r, 10));
+
+async function renderSpatialPage() {
     const container = document.getElementById('spatial-plots');
     if (!container) return;
     container.innerHTML = '';
-    window.LAYERS.forEach(l => {
+    
+    // Render individual layer heatmaps asynchronously
+    for (const l of window.LAYERS) {
         const section = document.createElement('div');
         section.className = 'card';
         section.innerHTML = `<div class="card-hdr" style="cursor:pointer" onclick="this.nextElementSibling.classList.toggle('collapsed')"><div class="card-title"><span class="material-icons" style="color:${l.color}">${l.icon}</span> ${l.label} ${l.unit?'('+l.unit+')':''}</div><div style="display:flex;align-items:center;gap:6px"><span class="badge-sm">${window.EDA.gridData[l.id]?(window.EDA.gridData[l.id].size.r+'×'+window.EDA.gridData[l.id].size.c):'--'}</span><span class="material-icons" style="color:var(--text-muted);font-size:20px">expand_more</span></div></div><div class="card-body"><div id="spatial-plot-${l.id}"></div><div class="extract-panel"><div class="extract-chip"><span style="color:var(--text-muted);font-weight:600">Lat,Lng:</span><span class="extract-coord-${l.id}" style="font-family:monospace;color:${l.color};font-weight:700">Click heatmap ↑</span></div><div class="extract-chip"><span style="color:var(--text-muted);font-weight:600">Value:</span><span class="extract-val-${l.id}" style="font-family:monospace;font-weight:700">--</span></div></div></div>`;
         container.appendChild(section);
+        
         if (window.EDA.gridData[l.id]) {
+            await yieldToMain();
             buildSpatialHeatmap(l.id, `spatial-plot-${l.id}`);
             const plotEl = document.getElementById(`spatial-plot-${l.id}`);
             if (plotEl) plotEl.on('plotly_click', data => {
@@ -48,42 +55,55 @@ function renderSpatialPage() {
                 if (ve) ve.textContent = `${pt.z?.toFixed(4)} ${l.unit}`;
             });
         }
-    });
+    }
 
     // ── Contour Map ──
     const demG = window.EDA.gridData.dem;
     if (demG) {
+        await yieldToMain();
         const {z, dr, dc} = dsGrid(demG, 6), b = demG.bounds;
-        Plotly.newPlot('spatial-contour', [{ z, type:'contour', x0:b.w, dx:(b.e-b.w)/dc, y0:b.s, dy:(b.n-b.s)/dr, colorscale:'Earth', contours:{ coloring:'heatmap', showlabels:true, labelfont:{size:9,color:'#e2e8f0'} }, line:{smoothing:0.85}, colorbar:{thickness:12,tickfont:{size:9,color:'#94a3b8'}} }], darkLayout('Contour Lines — DEM (m)', { height:400 }), PLOTLY_CFG);
+        Plotly.newPlot('spatial-contour', [{ z, type:'contour', x0:b.w, dx:(b.e-b.w)/dc, y0:b.n, dy:-(b.n-b.s)/dr, colorscale:'Earth', contours:{ coloring:'heatmap', showlabels:true, labelfont:{size:9,color:'#e2e8f0'} }, line:{smoothing:0.85}, colorbar:{thickness:12,tickfont:{size:9,color:'#94a3b8'}} }], darkLayout('Contour Lines — DEM (m)', { height:400 }), PLOTLY_CFG);
     }
 
     // ── Overlay — DEM + Flood ──
     const lblG = window.EDA.gridData.label;
     if (demG && lblG) {
+        await yieldToMain();
         const ds = 6, b = demG.bounds, {z:zDem, dr, dc} = dsGrid(demG, ds);
         const zFlood = [];
         for (let r = 0; r < dr; r++) { const row = []; for (let c = 0; c < dc; c++) { const v = gridVal(lblG, Math.min(r*ds,lblG.size.r-1)*lblG.size.c+Math.min(c*ds,lblG.size.c-1)); row.push(v !== null && v > 0 ? 1 : null); } zFlood.push(row); }
         Plotly.newPlot('spatial-overlay', [
-            { z:zDem, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.s, dy:(b.n-b.s)/dr, colorscale:'Earth', showscale:true, colorbar:{x:1.02,thickness:10,tickfont:{size:8,color:'#94a3b8'}}, hovertemplate:'DEM: %{z:.1f}m<extra></extra>', zsmooth:'best' },
-            { z:zFlood, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.s, dy:(b.n-b.s)/dr, colorscale:[[0,'rgba(0,0,0,0)'],[1,'rgba(239,68,68,0.55)']], showscale:false, hovertemplate:'Flood<extra></extra>', zsmooth:false }
+            { z:zDem, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.n, dy:-(b.n-b.s)/dr, colorscale:'Earth', showscale:true, colorbar:{x:1.02,thickness:10,tickfont:{size:8,color:'#94a3b8'}}, hovertemplate:'DEM: %{z:.1f}m<extra></extra>', zsmooth:'best' },
+            { z:zFlood, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.n, dy:-(b.n-b.s)/dr, colorscale:[[0,'rgba(0,0,0,0)'],[1,'rgba(239,68,68,0.55)']], showscale:false, hovertemplate:'Flood<extra></extra>', zsmooth:false }
         ], darkLayout('Overlay — DEM + Flood (đỏ)', { height:400 }), PLOTLY_CFG);
     }
 
     // ── Choropleth / Classified LULC ──
     const lcG = window.EDA.gridData.landCover;
+    let skipLulcSafe = false;
     if (lcG) {
+        await yieldToMain();
         const {z, dr, dc} = dsGrid(lcG, 6), b = lcG.bounds;
-        const classes = [...new Set(z.flat().filter(v => v !== null))].sort((a,b)=>a-b);
-        const colors = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899','#64748b','#6366f1'];
-        const dColorscale = [];
-        classes.forEach((c, i) => { const t = i / Math.max(classes.length - 1, 1); dColorscale.push([t, colors[i % colors.length]]); });
-        if (dColorscale.length < 2) dColorscale.push([0,'#3b82f6'],[1,'#10b981']);
-        Plotly.newPlot('spatial-classified', [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.s, dy:(b.n-b.s)/dr, colorscale:dColorscale, zsmooth:false, colorbar:{title:{text:'Class',font:{size:10,color:'#94a3b8'}},thickness:12,tickvals:classes,tickfont:{size:8,color:'#94a3b8'}} }], darkLayout('Choropleth — Classified LULC', { height:400 }), PLOTLY_CFG);
+        const flatZ = z.flat().filter(v => v !== null);
+        const classes = [...new Set(flatZ)].sort((a,b)=>a-b);
+        // Protection against Flow data crashing the browser
+        if (classes.length > 100) {
+            console.error("LULC data contains >100 classes! Data may be corrupted or swapped with flow data.");
+            skipLulcSafe = true;
+        }
+        if (!skipLulcSafe) {
+            const colors = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899','#64748b','#6366f1'];
+            const dColorscale = [];
+            classes.forEach((c, i) => { const t = i / Math.max(classes.length - 1, 1); dColorscale.push([t, colors[i % colors.length]]); });
+            if (dColorscale.length < 2) dColorscale.push([0,'#3b82f6'],[1,'#10b981']);
+            Plotly.newPlot('spatial-classified', [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.n, dy:-(b.n-b.s)/dr, colorscale:dColorscale, zsmooth:false, colorbar:{title:{text:'Class',font:{size:10,color:'#94a3b8'}},thickness:12,tickvals:classes,tickfont:{size:8,color:'#94a3b8'}} }], darkLayout('Choropleth — Classified LULC', { height:400 }), PLOTLY_CFG);
+        }
     }
 
     // ── Risk Zone ──
     const rainG = window.EDA.gridData.rain;
     if (rainG && demG && lblG) {
+        await yieldToMain();
         const ds = 5, rows = rainG.size.r, cols = rainG.size.c;
         const dr = Math.ceil(rows/ds), dc = Math.ceil(cols/ds), b = rainG.bounds;
         const z = [];
@@ -96,7 +116,7 @@ function renderSpatialPage() {
             if (dv !== null && dv < 0.5) risk += 1;
             row.push(risk);
         } z.push(row); }
-        Plotly.newPlot('spatial-riskzone', [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.s, dy:(b.n-b.s)/dr, colorscale:[[0,'#1e3a5f'],[0.25,'#22c55e'],[0.5,'#fbbf24'],[0.75,'#f97316'],[1,'#dc2626']], zsmooth:false, colorbar:{title:{text:'Risk Level',font:{size:10,color:'#94a3b8'}},thickness:12,tickvals:[0,1,2,3,4],ticktext:['None','Low','Med','High','Critical'],tickfont:{size:8,color:'#94a3b8'}} }], darkLayout('Risk Zone — Low DEM + High Rain + Flood', { height:400 }), PLOTLY_CFG);
+        Plotly.newPlot('spatial-riskzone', [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.n, dy:-(b.n-b.s)/dr, colorscale:[[0,'#1e3a5f'],[0.25,'#22c55e'],[0.5,'#fbbf24'],[0.75,'#f97316'],[1,'#dc2626']], zsmooth:false, colorbar:{title:{text:'Risk Level',font:{size:10,color:'#94a3b8'}},thickness:12,tickvals:[0,1,2,3,4],ticktext:['None','Low','Med','High','Critical'],tickfont:{size:8,color:'#94a3b8'}} }], darkLayout('Risk Zone — Low DEM + High Rain + Flood', { height:400 }), PLOTLY_CFG);
     }
 
     // ── Difference Map stuff ──
@@ -129,7 +149,7 @@ document.getElementById('btn-diff-load')?.addEventListener('click', async () => 
             const rawB = f32B[idx]; const vb = (rawB===ndB||rawB<=-9998)?null:rawB/scB;
             row.push(va!==null&&vb!==null?va-vb:null);
         } z.push(row); }
-        Plotly.newPlot('spatial-difference', [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.s, dy:(b.n-b.s)/dr, colorscale:'RdBu', zmid:0, zsmooth:'best', colorbar:{thickness:12,tickfont:{size:9,color:'#94a3b8'}} }], darkLayout(`Rain Difference: ${window.EDA.date} − ${dateB}`, { height:400 }), PLOTLY_CFG);
+        Plotly.newPlot('spatial-difference', [{ z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.n, dy:-(b.n-b.s)/dr, colorscale:'RdBu', zmid:0, zsmooth:'best', colorbar:{thickness:12,tickfont:{size:9,color:'#94a3b8'}} }], darkLayout(`Rain Difference: ${window.EDA.date} − ${dateB}`, { height:400 }), PLOTLY_CFG);
         toast('✅ Difference Map ready', 'success');
     } catch(e) { console.error(e); toast('Lỗi tải ngày B', 'error'); }
 });
@@ -160,7 +180,7 @@ document.getElementById('btn-anim-play')?.addEventListener('click', async () => 
     function show() {
         const f = frames[i % frames.length];
         document.getElementById('anim-frame-label').textContent = f.date;
-        Plotly.react(el, [{ z:f.z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.s, dy:(b.n-b.s)/dr, colorscale:'Blues', zsmooth:'best', colorbar:{thickness:10,tickfont:{size:8,color:'#94a3b8'}} }], darkLayout(`Rain — ${f.date}`, { height:380 }), PLOTLY_CFG);
+        Plotly.react(el, [{ z:f.z, type:'heatmap', x0:b.w, dx:(b.e-b.w)/dc, y0:b.n, dy:-(b.n-b.s)/dr, colorscale:'Blues', zsmooth:'best', colorbar:{thickness:10,tickfont:{size:8,color:'#94a3b8'}} }], darkLayout(`Rain — ${f.date}`, { height:380 }), PLOTLY_CFG);
         i++; if (i < frames.length) setTimeout(show, 1200);
     }
     show();

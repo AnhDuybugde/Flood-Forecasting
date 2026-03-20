@@ -192,6 +192,45 @@ export async function getLocalRainfallTotal(date: string, region: string): Promi
 }
 
 /**
+ * Compute region-average tide (m) from local NPZ for the trend chart.
+ * Band 2 = tide — denorm: raw * 3.0 - 1.5
+ * Samples a 20×20 grid and returns the mean tide in m.
+ */
+export async function getLocalTideTotal(date: string, region: string): Promise<number | null> {
+    const npz = await loadNpzFromLocal(date);
+    if (!npz) return null;
+
+    const { x, bands, height, width } = npz;
+    if (bands < 3) return null; // Band 2
+
+    const bounds = REGION_BOUNDS[region];
+    const gridRows = bounds?.rows ?? 20;
+    const gridCols = bounds?.cols ?? 20;
+
+    const samples: number[] = [];
+    for (let gr = 0; gr < gridRows; gr++) {
+        for (let gc = 0; gc < gridCols; gc++) {
+            const r = Math.floor((gr + 0.5) / gridRows * height);
+            const c = Math.floor((gc + 0.5) / gridCols * width);
+            const idx = 2 * height * width + r * width + c;
+            const val = x[idx];
+            if (val !== undefined && !isNaN(val) && val >= 0) {
+                samples.push(val);
+            }
+        }
+    }
+
+    if (samples.length === 0) return 0;
+
+    const rawMean = samples.reduce((a, b) => a + b, 0) / samples.length;
+    // Denorm Tide
+    const maxSample = Math.max(...samples);
+    const mean = maxSample <= 1.5 ? (rawMean * 3.0 - 1.5) : rawMean;
+
+    return parseFloat(mean.toFixed(2));
+}
+
+/**
  * Download and parse NPZ from R2.
  */
 export async function loadNpzFromR2(date: string): Promise<ParsedNpz | null> {

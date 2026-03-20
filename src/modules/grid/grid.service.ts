@@ -24,7 +24,7 @@ const gridCache = new MemoryCache<GridJSON>(100, 30 * 60 * 1000);
 // Layer name → NPZ band index (matches STACKED_BAND_NAMES order)
 const LAYER_TO_BAND_INDEX: Record<string, number> = {
     rain: 0, soilMoisture: 1, tide: 2, label: 3,
-    dem: 4, slope: 5, flow: 6, landCover: 7,
+    dem: 4, slope: 5, landCover: 6, flow: 7,
 };
 
 let tifFailCount = 0;
@@ -109,7 +109,7 @@ export function downsampleGrid(grid: GridJSON, maxRows: number): GridJSON {
     return { ...grid, size: { r: dstRows, c: dstCols }, data };
 }
 
-export async function getGrid(params: GridParams): Promise<Result<GridJSON, AppError>> {
+async function _getGridRaw(params: GridParams): Promise<Result<GridJSON, AppError>> {
     const { region, date, layer } = params;
     const t0 = Date.now();
     const env = getEnv();
@@ -297,4 +297,35 @@ export async function getGrid(params: GridParams): Promise<Result<GridJSON, AppE
     }
 
     return Err(AppErrors.notFound(`Grid data not available for ${layer} on ${date}`));
+}
+
+export async function getGrid(params: GridParams): Promise<Result<GridJSON, AppError>> {
+    const result = await _getGridRaw(params);
+    if (!result.ok || params.layer !== 'tide') {
+        return result;
+    }
+
+    const grid = result.value;
+    const s = grid.scale || 1;
+    let modified = false;
+
+    // Filter out physically impossible Tide values (e.g. over land overflow artifacts)
+    for (let i = 0; i < grid.data.length; i++) {
+        const raw = grid.data[i]!;
+        if (raw !== grid.nodata && raw > -9998) {
+            const actualValue = raw / s;
+            if (actualValue > 2.0 || actualValue < -2.0) {
+                grid.data[i] = grid.nodata;
+                modified = true;
+            }
+        }
+    }
+
+    if (modified) {
+        // Update cache with the cleaned grid
+        const cacheKey = `grid_${params.region}_${params.date}_${params.layer}`;
+        gridCache.set(cacheKey, grid);
+    }
+
+    return Ok(grid);
 }

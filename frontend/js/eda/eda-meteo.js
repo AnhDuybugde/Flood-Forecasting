@@ -19,10 +19,10 @@ function miniHeatmap(layerId, divId) {
     const cscale = { rain: 'Blues', tide: 'Teal', soilMoisture: 'YlOrBr' };
 
     Plotly.newPlot(divId, [{
-        z, type: 'heatmap', x0: b.w, dx: (b.e - b.w) / dc, y0: b.s, dy: (b.n - b.s) / dr,
+        z, type: 'heatmap', x0: b.w, dx: (b.e - b.w) / dc, y0:b.n, dy:-(b.n-b.s) / dr,
         colorscale: cscale[layerId] || 'Viridis', zsmooth: 'best',
         colorbar: { thickness: 10, tickfont: { size: 8, color: '#94a3b8' } },
-        hovertemplate: `%{z:.3f} ${layerUnit(layerId)}<extra></extra>`,
+        hovertemplate: `Lat:%{y:.3f}<br>Lng:%{x:.3f}<br>Value:%{z:.3f} ${layerUnit(layerId)}<extra>${layerLabel(layerId)}</extra>`,
     }], darkLayout('', { height: 280, margin: { l: 45, r: 10, t: 10, b: 35 } }), window.PLOTLY_CFG);
 }
 

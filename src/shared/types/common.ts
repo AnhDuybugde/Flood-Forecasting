@@ -52,7 +52,7 @@ export interface RegionBounds {
 // ── Band Configuration (matches merge_multiband.py) ────────
 export const STACKED_BAND_NAMES = [
     'rainfall', 'soilMoisture', 'tide', 'flood',
-    'dem', 'slope', 'flow', 'landCover',
+    'dem', 'slope', 'landCover', 'flow',
 ] as const;
 
 export const STACKED_BAND_SCALES = [1000, 1000, 1000, 1000, 1, 1, 1, 1] as const;
@@ -74,8 +74,8 @@ export const LAYER_FOLDER_MAP: Record<string, LayerConfig> = {
     label: { sub: 'LabelDaily', folder: '', prefix: 'Flood', scale: 1000 },
     dem: { sub: 'Static', prefix: 'DEM', isFlat: true, scale: 1 },
     slope: { sub: 'Static', prefix: 'Slope', isFlat: true, scale: 1 },
-    flow: { sub: 'Static', prefix: 'Flow', isFlat: true, scale: 1 },
-    landCover: { sub: 'Static', prefix: 'LandCover', isFlat: true, scale: 1 },
+    flow: { sub: 'Static', prefix: 'LandCover', isFlat: true, scale: 1 },
+    landCover: { sub: 'Static', prefix: 'Flow', isFlat: true, scale: 1 },
 };
 
 // ── Flood Risk Derivation ──────────────────────────────────
