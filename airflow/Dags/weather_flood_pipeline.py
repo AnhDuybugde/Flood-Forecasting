@@ -27,11 +27,11 @@ with DAG(
     dag_id='danang_flood_forecasting_etl',
     default_args=default_args,
     description='Full ETL pipeline for Danang flood forecasting',
-    schedule_interval='0 2 * * *',   # Chạy vào 2:00 sáng mỗi ngày (để chờ dữ liệu vệ tinh cập nhật)
+    schedule_interval='0 2 * * *',   # Runs at 2:00 AM every day (to wait for satellite data updates)
     start_date=datetime(2025, 12, 1), 
-    catchup=True,                    # Chuyển thành True nếu bạn muốn Airflow tự động cào bù dữ liệu từ quá khứ
+    catchup=True,                   
     tags=['flood', 'earth_engine', 'deep_learning'],
-    max_active_runs=1,               # Quan trọng: Tránh nhiều ngày chạy cùng lúc gây nghẽn RAM khi xử lý ảnh raster
+    max_active_runs=1,              
 ) as dag:
 
     # =================================================================

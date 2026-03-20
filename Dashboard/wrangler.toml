@@ -1,0 +1,12 @@
+name = "flood-pixel-api"
+main = "api/edge-worker-pixel.js"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+# R2 bucket binding — allows Worker to access R2 without S3 API
+[[r2_buckets]]
+binding = "R2_BUCKET"
+bucket_name = "satellite-data-10x10"
+
+[vars]
+REGION = "DaNang"

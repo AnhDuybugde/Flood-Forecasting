@@ -1,37 +1,89 @@
-# 1. DỮ LIỆU (Ignore toàn bộ data nặng)
+# --- Python & Build ---
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+*.pyc
+
+# --- Virtual Environments ---
+.venv/
+venv/
+ENV/
+env/
+Demo_structure/venv/
+airflow/venv/
+
+# --- IDE & OS ---
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# --- Jupyter Notebook ---
+.ipynb_checkpoints
+
+# --- Node.js / Frontend ---
+node_modules/
+package-lock.json
+
+# --- Environment Secrets (IMPORTANT) ---
+.env
+.env.*
+!.env.example
+airflow/.env
+airflow/config/gee-key.json
+
+# --- Data Files (Large/Local) ---
+*.nc
+*.xlsx
+*.npz
+*.tif
+*.csv
+*.h5
+*.pkl
+data/
 Data/
 airflow/Data/
 airflow/data_original/
 airflow/data_processed/
+Dashboard/Data_Training/
+Dashboard/Data_Visualize/
+Demo_structure/Data_Training/
+Demo_structure/Data_Visualize/
+Demo_structure/Notebook/DaNang_Flood_Local/
 
-# Ignore các file .npz lẻ tẻ nếu có lọt ra ngoài
-*.npz
-*.tif
-*.csv
-
-# 2. MODEL AI (Tránh đẩy file .pth nặng lên Git)
+# --- Machine Learning Models ---
 *.pth
-*.h5
-*.pkl
+*.bin
+*.onnx
+# Lưu ý: Nếu bạn dùng Git LFS cho .onnx thì KHÔNG thêm *.onnx vào đây.
+# Nhưng nếu bạn muốn loại bỏ hẳn model khỏi Git thì hãy bỏ comment dòng dưới:
+# *.onnx
 
-# 3. THÔNG TIN BẢO MẬT & CẤU HÌNH
-.env
-airflow/.env
-airflow/config/gee-key.json
-**/*.json
-# (Lưu ý: Nếu bạn có file json quan trọng không phải key thì hãy cân nhắc dòng trên)
-
-# 4. MÔI TRƯỜNG ẢO & RÁC HỆ THỐNG
-venv/
-.venv/
-env/
-__pycache__/
-*.pyc
-.ipynb_checkpoints/
-.streamlit/
+# --- Logs & Temp ---
+*.log
+logs/
 airflow/logs/
-
-# Rác hệ điều hành
-.DS_Store
-desktop.ini
-Thumbs.db
+output.txt
+debug-r2.json
+list-r2.ts
+.streamlit/
